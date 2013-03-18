@@ -1,0 +1,105 @@
+package me.itzgeoff.vidsync;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import me.itzgeoff.vidsync.common.PercentilePrinterProgressListener;
+import me.itzgeoff.vidsync.common.VidSyncException;
+
+import com.coremedia.iso.IsoFile;
+import com.coremedia.iso.boxes.Box;
+import com.coremedia.iso.boxes.HandlerBox;
+import com.coremedia.iso.boxes.MetaBox;
+import com.coremedia.iso.boxes.MovieBox;
+import com.coremedia.iso.boxes.MovieHeaderBox;
+import com.coremedia.iso.boxes.UserDataBox;
+import com.coremedia.iso.boxes.apple.AppleItemListBox;
+import com.coremedia.iso.boxes.apple.AppleTrackTitleBox;
+
+public class MovieInfoParser {
+	
+	private String[] titleRegExReplacements = new String[]{
+		"\\.\\p{Alnum}+$", "",
+		"_", " "
+	};
+	
+	public static void main(String[] args) throws IOException, VidSyncException {
+		if (args.length < 1) {
+			System.err.println("Missing filename arg");
+			System.exit(1);
+		}
+		MovieInfoParser parser = new MovieInfoParser();
+		MovieInfo info = parser.parse(new File(args[0]));
+		
+		System.out.printf("Parsed %s", info);
+	}
+
+	public MovieInfoParser() {
+	}
+
+	public MovieInfo parse(File file) throws IOException, VidSyncException {
+		MovieInfo info = new MovieInfo();
+		
+		info.setTitle(deriveTitleFromFilename(file));
+		
+		try (IsoFile isoFile = new IsoFile(file)) {
+			List<MovieBox> moovList = isoFile.getBoxes(MovieBox.class);
+			if (moovList.isEmpty()) {
+				throw new VidSyncException("Missing moov box");
+			}
+			
+			MovieBox moov = moovList.get(0);
+			
+			MovieHeaderBox movieHeaderBox = moov.getMovieHeaderBox();
+			final long timescale = movieHeaderBox.getTimescale();
+			
+			info.setDuration(movieHeaderBox.getDuration()/timescale);
+			
+			List<UserDataBox> udtaBoxes = moov.getBoxes(UserDataBox.class);
+			if (!udtaBoxes.isEmpty()) {
+				UserDataBox udta = udtaBoxes.get(0);
+				List<MetaBox> metaBoxes = udta.getBoxes(MetaBox.class);
+				if (!metaBoxes.isEmpty()) {
+					MetaBox meta = metaBoxes.get(0);
+					List<HandlerBox> hdlrBoxes = meta.getBoxes(HandlerBox.class);
+					if (!hdlrBoxes.isEmpty()) {
+						HandlerBox hdlr = hdlrBoxes.get(0);
+						switch (hdlr.getHandlerType()) {
+							case "mdir":
+								handleAppleMetadata(meta, info);
+								break;
+						}
+					}
+				}
+			}
+		}
+		
+		return info;
+		
+	}
+
+	private String deriveTitleFromFilename(File file) {
+		String name = file.getName();
+		
+		for (int i = 0; i < titleRegExReplacements.length; i += 2) {
+			name = name.replaceAll(titleRegExReplacements[i], titleRegExReplacements[i+1]);
+		}
+		
+		return name;
+	}
+
+	private void handleAppleMetadata(MetaBox meta, MovieInfo info) throws VidSyncException {
+		List<AppleItemListBox> ilistBoxes = meta.getBoxes(AppleItemListBox.class);
+		if (ilistBoxes.isEmpty()) {
+			throw new VidSyncException("Expected ilist box");
+		}
+		
+		AppleItemListBox ilist = ilistBoxes.get(0);
+		List<AppleTrackTitleBox> titleBoxes = ilist.getBoxes(AppleTrackTitleBox.class);
+		
+		if (!titleBoxes.isEmpty()) {
+			info.setTitle(titleBoxes.get(0).getValue());
+		}
+	}
+}
