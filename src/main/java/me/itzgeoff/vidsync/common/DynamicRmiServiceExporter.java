@@ -15,7 +15,7 @@ public class DynamicRmiServiceExporter extends RmiServiceExporter {
 	private Registry createdRegistry;
 	
 	@Autowired
-	private EphermealServerSocketFactory ourServerSocketFactory;
+	private EphemeralServerSocketFactory ourServerSocketFactory;
 
 	/**
 	 * This method cannot be used since the exporter will always create its own.

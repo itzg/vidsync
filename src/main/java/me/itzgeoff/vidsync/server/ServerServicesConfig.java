@@ -7,14 +7,17 @@ import javax.jmdns.ServiceInfo;
 
 import me.itzgeoff.vidsync.common.DynamicRmiServiceExporter;
 import me.itzgeoff.vidsync.common.VidSyncConstants;
+import me.itzgeoff.vidsync.services.VidSyncServerService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 @Configuration
+@Profile("server")
 public class ServerServicesConfig {
 	private static final Logger logger = LoggerFactory.getLogger(ServerServicesConfig.class);
 	
@@ -35,7 +38,7 @@ public class ServerServicesConfig {
 	@Bean
 	@Autowired
 	public ServiceInfo vidsyncRmiMdnsServiceInfo(JmDNS jmDNS, DynamicRmiServiceExporter rmiExporter) throws IOException {
-		ServiceInfo serviceInfo = ServiceInfo.create("_rmi._tcp.local.", 
+		ServiceInfo serviceInfo = ServiceInfo.create(VidSyncConstants.MDNS_SERVICE_TYPE, 
 				VidSyncConstants.MDNS_NAME_VIDSYNC_SERVER, 
 				rmiExporter.getRmiRegistryPort(), 
 				"VidSync Server RMI Service");

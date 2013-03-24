@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope("prototype")
-class EphermealServerSocketFactory implements RMIServerSocketFactory {
+class EphemeralServerSocketFactory implements RMIServerSocketFactory {
 
 	ServerSocket createdSocket;
 

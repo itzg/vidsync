@@ -12,6 +12,7 @@ public class ClientMain {
 	public static void main(String[] args) {
 		  @SuppressWarnings("resource")
 		  AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+		  ctx.getEnvironment().setActiveProfiles("client");
 		  ctx.scan(
 				  // our package
 				  ClientMain.class.getPackage().getName(),

@@ -1,4 +1,4 @@
-package me.itzgeoff.vidsync.server;
+package me.itzgeoff.vidsync.services;
 
 public interface VidSyncServerService {
 
