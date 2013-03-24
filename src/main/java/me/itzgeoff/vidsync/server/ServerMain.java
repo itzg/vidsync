@@ -1,5 +1,7 @@
 package me.itzgeoff.vidsync.server;
 
+import me.itzgeoff.vidsync.common.VidSyncConstants;
+
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 public class ServerMain {
@@ -10,7 +12,12 @@ public class ServerMain {
 	public static void main(String[] args) {
 		  @SuppressWarnings("resource")
 		  AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
-		  ctx.scan(ServerMain.class.getPackage().getName());
+		  ctx.scan(
+				  // server package
+				  ServerMain.class.getPackage().getName(),
+				  // common package
+				  VidSyncConstants.class.getPackage().getName()
+				  );
 		  ctx.refresh();
 		  
 		  ctx.registerShutdownHook();
