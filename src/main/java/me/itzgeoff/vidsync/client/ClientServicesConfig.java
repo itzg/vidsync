@@ -1,4 +1,4 @@
-package me.itzgeoff.vidsync.server;
+package me.itzgeoff.vidsync.client;
 
 import java.io.IOException;
 
@@ -15,19 +15,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class ServerServicesConfig {
-	private static final Logger logger = LoggerFactory.getLogger(ServerServicesConfig.class);
+public class ClientServicesConfig {
+	private static final Logger logger = LoggerFactory.getLogger(ClientServicesConfig.class);
 	
 	@Autowired
-	private VidSyncServerService vidsyncService;
+	private VidSyncClientService vidsyncService;
 	
 	@Bean
 	public DynamicRmiServiceExporter vidsyncServiceExporter() {
 		DynamicRmiServiceExporter exporter = new DynamicRmiServiceExporter();
 		
-		exporter.setServiceName("VidSyncServerService");
+		exporter.setServiceName("VidSyncClientService");
 		exporter.setService(vidsyncService);
-		exporter.setServiceInterface(VidSyncServerService.class);
+		exporter.setServiceInterface(VidSyncClientService.class);
 		
 		return exporter;
 	}
@@ -36,9 +36,9 @@ public class ServerServicesConfig {
 	@Autowired
 	public ServiceInfo vidsyncRmiMdnsServiceInfo(JmDNS jmDNS, DynamicRmiServiceExporter rmiExporter) throws IOException {
 		ServiceInfo serviceInfo = ServiceInfo.create("_rmi._tcp.local.", 
-				VidSyncConstants.MDNS_NAME_VIDSYNC_SERVER, 
+				VidSyncConstants.MDNS_NAME_VIDSYNC_CLIENT, 
 				rmiExporter.getRmiRegistryPort(), 
-				"VidSync Server RMI Service");
+				"VidSync Client RMI Service");
 		
 		jmDNS.registerService(serviceInfo);
 		
@@ -46,4 +46,5 @@ public class ServerServicesConfig {
 		
 		return serviceInfo;
 	}
+
 }

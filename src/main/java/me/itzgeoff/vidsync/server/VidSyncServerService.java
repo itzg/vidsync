@@ -1,5 +1,5 @@
 package me.itzgeoff.vidsync.server;
 
-public interface VidsyncService {
+public interface VidSyncServerService {
 
 }
