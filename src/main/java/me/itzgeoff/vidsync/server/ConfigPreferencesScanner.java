@@ -1,7 +1,9 @@
 package me.itzgeoff.vidsync.server;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -55,27 +57,43 @@ public class ConfigPreferencesScanner {
 	protected void scanPreferences() {
 		Preferences serverPreferences = ConfigFactory.createServerPreferences();
 		
+		boolean changes = false;
+		
 		Map<String, String> latestData = new HashMap<>();
 		try {
 			String[] keys = serverPreferences.keys();
 			for (String key : keys) {
-				latestData.put(key, serverPreferences.get(key, null));
+				String currentValue = serverPreferences.get(key, "");
+				if (previousPrefs == null || !currentValue.equals(previousPrefs.get(key))) {
+					fireChange(key, currentValue);
+					changes = true;
+				}
+
+				latestData.put(key, currentValue);
 			}
 		} catch (BackingStoreException e) {
 			logger.error("Trying to enumerate preferences", e);
 			return;
 		}
 		
-		if (previousPrefs == null || !previousPrefs.equals(latestData)) {
-			fireChange(serverPreferences);
-			previousPrefs = latestData;
+		// look for removals
+		if (previousPrefs != null) {
+			Set<String> previousKeys = new HashSet<>(previousPrefs.keySet());
+			previousKeys.removeAll(latestData.keySet());
+			for (String key : previousKeys) {
+				fireChange(key, null);
+				changes = true;
+			}
 		}
 		
+		if (changes) {
+			previousPrefs = latestData;
+		}
 	}
 
-	private void fireChange(Preferences serverPreferences) {
+	private void fireChange(String key, String value) {
 		for (PreferencesConsumer consumer : consumers) {
-			consumer.preferencesChanged(serverPreferences);
+			consumer.preferencesChanged(key, value);
 		}
 	}
 }

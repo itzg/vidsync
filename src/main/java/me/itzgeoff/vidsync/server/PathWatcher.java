@@ -1,6 +1,5 @@
 package me.itzgeoff.vidsync.server;
 
-import java.util.prefs.Preferences;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,8 +11,10 @@ public class PathWatcher implements PreferencesConsumer {
 			.getLogger(PathWatcher.class);
 	
 	@Override
-	public void preferencesChanged(Preferences prefs) {
-		logger.debug("Saw change in preferences. Will extract {}", prefs.get(ConfigFactory.PREF_PATHS,"[]"));
+	public void preferencesChanged(String key, String value) {
+		if (key.equals(ConfigFactory.PREF_PATHS)) {
+			logger.debug("Saw change in preferences. Will extract {}", value);
+		}
 	}
 
 }
