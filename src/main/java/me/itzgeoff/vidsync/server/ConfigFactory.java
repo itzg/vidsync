@@ -30,7 +30,7 @@ public class ConfigFactory {
 	}
 
 	public static DefaultListModel<File> createPathDataModel() {
-		final Preferences serverPrefs = Preferences.userNodeForPackage(ConfigFactory.class);
+		final Preferences serverPrefs = createServerPreferences();
 		
 		DefaultListModel<File> model = new DefaultListModel<>();
 
@@ -80,6 +80,10 @@ public class ConfigFactory {
 			}
 		});
 		return model;
+	}
+
+	static Preferences createServerPreferences() {
+		return Preferences.userNodeForPackage(ConfigFactory.class);
 	}
 
 	public static boolean hasFilesToScan(File directory) {
