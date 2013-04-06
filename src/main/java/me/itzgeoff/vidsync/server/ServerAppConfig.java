@@ -109,7 +109,7 @@ public class ServerAppConfig {
 	
 	@Bean
 	@Qualifier("signature")
-	public TaskExecutor signatureExecutor(@Value("${signature.executor.maxPoolSize:1}") int signatureMaxPoolSize) {
+	public TaskExecutor signatureExecutor(@Value("${signature.executor.maxPoolSize:2}") int signatureMaxPoolSize) {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		
 		logger.debug("Creating signature executor with pool size of {}", signatureMaxPoolSize);

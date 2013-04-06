@@ -3,6 +3,7 @@ package me.itzgeoff.vidsync.common;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -48,33 +49,40 @@ public class MdatSignatureParser {
 			listener = SuppressedProgressListener.getInstance();
 		}
 		
-		try (IsoFile isoFile = new IsoFile(file)) {
-		
-			List<MediaDataBox> mdatList = isoFile.getBoxes(MediaDataBox.class);
-			if (mdatList.isEmpty()) {
-				throw new VidSyncException("Missing mdat box");
-			}
+		try (FileChannel channel = FileChannel.open(file.toPath())) {
+			try (IsoFile isoFile = new IsoFile(channel)) {
 			
-			MediaDataBox mdat = mdatList.get(0);
-			
-			try {
-				MessageDigest md5 = MessageDigest.getInstance(MD_ALGO);
-				
-				// Needed to compute content size since the box didn't give us that directly
-				final long contentSize = mdat.getSize() - mdat.getHeader().limit();
-				
-				listener.expectedTotal(contentSize);
-				for (long offset = 0; offset < contentSize; offset += MD_BUFFER_SIZE) {
-					listener.update(offset);
-					int length = Math.min(MD_BUFFER_SIZE, (int)(contentSize - offset));
-					ByteBuffer buffer = mdat.getContent(offset, length);
-					md5.update(buffer);
+				List<MediaDataBox> mdatList = isoFile.getBoxes(MediaDataBox.class);
+				if (mdatList.isEmpty()) {
+					throw new VidSyncException("Missing mdat box");
 				}
 				
-				byte[] signatureBytes = md5.digest();
-				return Base64.encodeBase64String(signatureBytes);
-			} catch (NoSuchAlgorithmException e) {
-				throw new VidSyncException(e);
+				MediaDataBox mdat = mdatList.get(0);
+				
+				try {
+					MessageDigest md5 = MessageDigest.getInstance(MD_ALGO);
+					
+					// Needed to compute content size since the box didn't give us that directly
+					final long contentSize = mdat.getDataEndPosition() - mdat.getDataStartPosition();
+					
+					listener.expectedTotal(contentSize);
+					for (long offset = 0; offset < contentSize; offset += MD_BUFFER_SIZE) {
+						listener.update(offset);
+						int length = Math.min(MD_BUFFER_SIZE, (int)(contentSize - offset));
+						ByteBuffer buffer = mdat.getContent(offset, length);
+						md5.update(buffer);
+					}
+					
+					byte[] signatureBytes = md5.digest();
+					return Base64.encodeBase64String(signatureBytes);
+				} catch (NoSuchAlgorithmException e) {
+					throw new VidSyncException(e);
+				}
+			}
+			finally {
+				// Since mp4parser does a whole lot of NIO caching and we're doing this
+				// iteratively, we'll force a gc to working set memory bounded
+				System.gc();
 			}
 		}
 	}

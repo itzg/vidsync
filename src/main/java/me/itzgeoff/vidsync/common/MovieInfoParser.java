@@ -2,6 +2,7 @@ package me.itzgeoff.vidsync.common;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
@@ -39,13 +40,15 @@ public class MovieInfoParser {
 	}
 	
 	public void validate(File file) throws IOException, VidSyncException {
-		try (IsoFile isoFile = new IsoFile(file)) {
-			if (isoFile.getBoxes(MovieBox.class).isEmpty()) {
-				throw new VidSyncException("Missing moov box");
-			}
-
-			if (isoFile.getBoxes(MediaDataBox.class).isEmpty()) {
-				throw new VidSyncException("Missing mdat box");
+		try (FileChannel channel = FileChannel.open(file.toPath())) {
+			try (IsoFile isoFile = new IsoFile(channel)) {
+				if (isoFile.getBoxes(MovieBox.class).isEmpty()) {
+					throw new VidSyncException("Missing moov box");
+				}
+	
+				if (isoFile.getBoxes(MediaDataBox.class).isEmpty()) {
+					throw new VidSyncException("Missing mdat box");
+				}
 			}
 		}
 	}
@@ -55,32 +58,34 @@ public class MovieInfoParser {
 		
 		info.setTitle(deriveTitleFromFilename(file));
 		
-		try (IsoFile isoFile = new IsoFile(file)) {
-			List<MovieBox> moovList = isoFile.getBoxes(MovieBox.class);
-			if (moovList.isEmpty()) {
-				throw new VidSyncException("Missing moov box");
-			}
-			
-			MovieBox moov = moovList.get(0);
-			
-			MovieHeaderBox movieHeaderBox = moov.getMovieHeaderBox();
-			final long timescale = movieHeaderBox.getTimescale();
-			
-			info.setDuration(movieHeaderBox.getDuration()/timescale);
-			
-			List<UserDataBox> udtaBoxes = moov.getBoxes(UserDataBox.class);
-			if (!udtaBoxes.isEmpty()) {
-				UserDataBox udta = udtaBoxes.get(0);
-				List<MetaBox> metaBoxes = udta.getBoxes(MetaBox.class);
-				if (!metaBoxes.isEmpty()) {
-					MetaBox meta = metaBoxes.get(0);
-					List<HandlerBox> hdlrBoxes = meta.getBoxes(HandlerBox.class);
-					if (!hdlrBoxes.isEmpty()) {
-						HandlerBox hdlr = hdlrBoxes.get(0);
-						switch (hdlr.getHandlerType()) {
-							case "mdir":
-								handleAppleMetadata(meta, info);
-								break;
+		try (FileChannel channel = FileChannel.open(file.toPath())) {
+			try (IsoFile isoFile = new IsoFile(channel)) {
+				List<MovieBox> moovList = isoFile.getBoxes(MovieBox.class);
+				if (moovList.isEmpty()) {
+					throw new VidSyncException("Missing moov box");
+				}
+				
+				MovieBox moov = moovList.get(0);
+				
+				MovieHeaderBox movieHeaderBox = moov.getMovieHeaderBox();
+				final long timescale = movieHeaderBox.getTimescale();
+				
+				info.setDuration(movieHeaderBox.getDuration()/timescale);
+				
+				List<UserDataBox> udtaBoxes = moov.getBoxes(UserDataBox.class);
+				if (!udtaBoxes.isEmpty()) {
+					UserDataBox udta = udtaBoxes.get(0);
+					List<MetaBox> metaBoxes = udta.getBoxes(MetaBox.class);
+					if (!metaBoxes.isEmpty()) {
+						MetaBox meta = metaBoxes.get(0);
+						List<HandlerBox> hdlrBoxes = meta.getBoxes(HandlerBox.class);
+						if (!hdlrBoxes.isEmpty()) {
+							HandlerBox hdlr = hdlrBoxes.get(0);
+							switch (hdlr.getHandlerType()) {
+								case "mdir":
+									handleAppleMetadata(meta, info);
+									break;
+							}
 						}
 					}
 				}
