@@ -5,16 +5,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import me.itzgeoff.vidsync.domain.server.WatchedFile;
-import me.itzgeoff.vidsync.domain.server.WatchedFilesRepository;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@ServerComponent
+@Component
 public class PathWatcher implements PreferencesConsumer {
 	
 	private static final Logger logger = LoggerFactory
@@ -23,7 +22,7 @@ public class PathWatcher implements PreferencesConsumer {
 	private static final VideoFileFilter videoFileFilter = new VideoFileFilter();
 	
 	@Autowired
-	private WatchedFilesRepository repository;
+	private WatchedFileRouter router;
 	
 	@Override
 	public void preferencesChanged(String key, String value) {
@@ -54,20 +53,13 @@ public class PathWatcher implements PreferencesConsumer {
 		}
 	}
 
-	private void processAddedPath(File path) {
+	public void processAddedPath(File path) {
 		logger.debug("Processing added path {}", path);
 		
 		File[] videoFiles = path.listFiles(videoFileFilter);
 		if (videoFiles != null) {
 			for (File videoFile : videoFiles) {
-				try {
-					WatchedFile entry = repository.findByPath(videoFile.getCanonicalPath());
-					if (entry == null) {
-						logger.debug("{} looks new to us", videoFile);
-					}
-				} catch (IOException e) {
-					logger.error("Trying to get canonical form of {}", e, videoFile);
-				}
+				router.in(videoFile);
 			}
 		}
 	}

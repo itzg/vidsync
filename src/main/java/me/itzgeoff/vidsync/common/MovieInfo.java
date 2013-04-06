@@ -1,4 +1,4 @@
-package me.itzgeoff.vidsync;
+package me.itzgeoff.vidsync.common;
 
 public class MovieInfo {
 	private String title;

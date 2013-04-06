@@ -1,25 +1,20 @@
-package me.itzgeoff.vidsync;
+package me.itzgeoff.vidsync.common;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
-import me.itzgeoff.vidsync.common.PercentilePrinterProgressListener;
-import me.itzgeoff.vidsync.common.ProgressListener;
-import me.itzgeoff.vidsync.common.SuppressedProgressListener;
-import me.itzgeoff.vidsync.common.VidSyncException;
-
 import org.apache.commons.codec.binary.Base64;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
 
 import com.coremedia.iso.IsoFile;
-import com.coremedia.iso.boxes.Box;
 import com.coremedia.iso.boxes.mdat.MediaDataBox;
 
+@Component
 public class MdatSignatureParser {
 	
 	private static final String MD_ALGO = "MD5";
@@ -36,6 +31,16 @@ public class MdatSignatureParser {
 		long duration = System.nanoTime() - start;
 		
 		System.out.printf("Signature of %s is %s (took %f seconds)%n", args[0], signature, duration / (double)1e9);
+	}
+	
+	@Async("signature")
+	public void parseAsync(File file, ResultConsumer<File, String> consumer) {
+		try {
+			String signature = parse(file, null);
+			consumer.consumeResult(file, signature);
+		} catch (IOException | VidSyncException e) {
+			consumer.failedToReachResult(file, e);
+		}
 	}
 
 	public String parse(File file, ProgressListener listener) throws IOException, VidSyncException {
@@ -62,9 +67,6 @@ public class MdatSignatureParser {
 				for (long offset = 0; offset < contentSize; offset += MD_BUFFER_SIZE) {
 					listener.update(offset);
 					int length = Math.min(MD_BUFFER_SIZE, (int)(contentSize - offset));
-					if (length < MD_BUFFER_SIZE) {
-						System.out.println("Last one");
-					}
 					ByteBuffer buffer = mdat.getContent(offset, length);
 					md5.update(buffer);
 				}

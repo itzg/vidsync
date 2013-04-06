@@ -1,14 +1,12 @@
-package me.itzgeoff.vidsync;
+package me.itzgeoff.vidsync.common;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import me.itzgeoff.vidsync.common.PercentilePrinterProgressListener;
-import me.itzgeoff.vidsync.common.VidSyncException;
+import org.springframework.stereotype.Component;
 
 import com.coremedia.iso.IsoFile;
-import com.coremedia.iso.boxes.Box;
 import com.coremedia.iso.boxes.HandlerBox;
 import com.coremedia.iso.boxes.MetaBox;
 import com.coremedia.iso.boxes.MovieBox;
@@ -16,7 +14,9 @@ import com.coremedia.iso.boxes.MovieHeaderBox;
 import com.coremedia.iso.boxes.UserDataBox;
 import com.coremedia.iso.boxes.apple.AppleItemListBox;
 import com.coremedia.iso.boxes.apple.AppleTrackTitleBox;
+import com.coremedia.iso.boxes.mdat.MediaDataBox;
 
+@Component
 public class MovieInfoParser {
 	
 	private String[] titleRegExReplacements = new String[]{
@@ -36,6 +36,18 @@ public class MovieInfoParser {
 	}
 
 	public MovieInfoParser() {
+	}
+	
+	public void validate(File file) throws IOException, VidSyncException {
+		try (IsoFile isoFile = new IsoFile(file)) {
+			if (isoFile.getBoxes(MovieBox.class).isEmpty()) {
+				throw new VidSyncException("Missing moov box");
+			}
+
+			if (isoFile.getBoxes(MediaDataBox.class).isEmpty()) {
+				throw new VidSyncException("Missing mdat box");
+			}
+		}
 	}
 
 	public MovieInfo parse(File file) throws IOException, VidSyncException {

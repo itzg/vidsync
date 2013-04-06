@@ -49,4 +49,5 @@ public class ServerServicesConfig {
 		
 		return serviceInfo;
 	}
+
 }

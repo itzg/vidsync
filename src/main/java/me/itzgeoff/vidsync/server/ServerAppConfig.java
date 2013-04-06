@@ -1,6 +1,7 @@
 package me.itzgeoff.vidsync.server;
 
 import java.net.Inet4Address;
+import java.util.concurrent.Executor;
 
 import javax.jmdns.ServiceInfo;
 
@@ -9,19 +10,30 @@ import me.itzgeoff.vidsync.services.VidSyncClientService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.remoting.rmi.RmiProxyFactoryBean;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @Configuration
+@EnableAsync
 public class ServerAppConfig {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ServerAppConfig.class);
+	
+	@Autowired
+	private Environment env;
 
 	@Bean
 	public PropertyPlaceholderConfigurer propertyPlaceholder() {
@@ -95,4 +107,29 @@ public class ServerAppConfig {
 		return new ServerViewOfClientInstance();
 	}
 	
-}
+	@Bean
+	@Qualifier("signature")
+	public TaskExecutor signatureExecutor(@Value("${signature.executor.maxPoolSize:1}") int signatureMaxPoolSize) {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		
+		logger.debug("Creating signature executor with pool size of {}", signatureMaxPoolSize);
+		executor.setCorePoolSize(signatureMaxPoolSize);
+		executor.setMaxPoolSize(signatureMaxPoolSize);
+        executor.setThreadNamePrefix("SignatureScan-");
+
+		return executor;
+	}
+	
+	@Bean
+	@Qualifier("worker")
+	public Executor workerExecutor() {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(getCoreCount());
+		executor.setMaxPoolSize(getCoreCount());
+		executor.setThreadNamePrefix("Worker-");
+		return executor;
+	}
+
+	private int getCoreCount() {
+		return Runtime.getRuntime().availableProcessors();
+	}}
