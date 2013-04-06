@@ -1,27 +1,32 @@
 package me.itzgeoff.vidsync.server;
 
-import javax.swing.JPanel;
 import java.awt.BorderLayout;
-
-import javax.swing.DefaultListModel;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
-import javax.swing.JList;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.border.EmptyBorder;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.ListSelectionModel;
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 
-public class PathsToScanPanel extends JPanel {
+import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.border.EmptyBorder;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.ListSelectionEvent;
 
-	private File previousDirectory;
+public class PathsToScanPanel extends JPanel {
+    private static final long serialVersionUID = 1L;
+    private File previousDirectory;
 	private JList<File> pathList;
 	private DefaultListModel<File> pathDataModel;
+	private JButton btnRemove;
 
 	/**
 	 * Create the panel.
@@ -40,7 +45,12 @@ public class PathsToScanPanel extends JPanel {
 		JPanel panel = new JPanel();
 		panel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		add(panel, BorderLayout.EAST);
-		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		GridBagLayout gbl_panel = new GridBagLayout();
+		gbl_panel.columnWidths = new int[]{71, 0};
+		gbl_panel.rowHeights = new int[]{23, 23, 0};
+		gbl_panel.columnWeights = new double[]{0.0, Double.MIN_VALUE};
+		gbl_panel.rowWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
+		panel.setLayout(gbl_panel);
 		
 		JButton btnAdd = new JButton("Add...");
 		btnAdd.addActionListener(new ActionListener() {
@@ -48,20 +58,57 @@ public class PathsToScanPanel extends JPanel {
 				doAdd();
 			}
 		});
-		panel.add(btnAdd);
+		GridBagConstraints gbc_btnAdd = new GridBagConstraints();
+		gbc_btnAdd.fill = GridBagConstraints.HORIZONTAL;
+		gbc_btnAdd.insets = new Insets(0, 0, 5, 0);
+		gbc_btnAdd.gridx = 0;
+		gbc_btnAdd.gridy = 0;
+		panel.add(btnAdd, gbc_btnAdd);
+		
+		btnRemove = new JButton("Remove");
+		btnRemove.setEnabled(false);
+		btnRemove.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent e) {
+		        doRemove();
+		    }
+		});
+		GridBagConstraints gbc_btnRemove = new GridBagConstraints();
+		gbc_btnRemove.fill = GridBagConstraints.HORIZONTAL;
+		gbc_btnRemove.gridx = 0;
+		gbc_btnRemove.gridy = 1;
+		panel.add(btnRemove, gbc_btnRemove);
 
 	}
 
-	private JList createPathList() {
+	protected void doRemove() {
+        File selectedValue = pathList.getSelectedValue();
+        pathDataModel.removeElement(selectedValue);
+    }
+
+    private JList createPathList() {
 		if (pathList == null) {
 			pathDataModel = ConfigFactory.createPathDataModel();
 			pathList = new JList<>(pathDataModel);
+			pathList.addListSelectionListener(new ListSelectionListener() {
+			    public void valueChanged(ListSelectionEvent e) {
+			        if (pathList.getMinSelectionIndex() < 0) {
+			            doPathSelected(false);
+			        }
+			        else {
+			            doPathSelected(true);
+			        }
+			    }
+			});
 		}
 
 		return pathList;
 	}
 
-	protected void doAdd() {
+	protected void doPathSelected(boolean b) {
+	    getBtnRemove().setEnabled(b);
+    }
+
+    protected void doAdd() {
 		JFileChooser chooser = new JFileChooser(previousDirectory);
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		int result = chooser.showOpenDialog(this);
@@ -79,4 +126,7 @@ public class PathsToScanPanel extends JPanel {
 		}
 	}
 
+    protected JButton getBtnRemove() {
+        return btnRemove;
+    }
 }

@@ -63,7 +63,7 @@ public class MdatSignatureParser {
 					MessageDigest md5 = MessageDigest.getInstance(MD_ALGO);
 					
 					// Needed to compute content size since the box didn't give us that directly
-					final long contentSize = mdat.getDataEndPosition() - mdat.getDataStartPosition();
+				final long contentSize = mdat.getSize() - mdat.getHeader().limit();
 					
 					listener.expectedTotal(contentSize);
 					for (long offset = 0; offset < contentSize; offset += MD_BUFFER_SIZE) {
