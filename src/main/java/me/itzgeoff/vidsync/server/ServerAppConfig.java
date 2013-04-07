@@ -36,7 +36,7 @@ public class ServerAppConfig {
 	private Environment env;
 
 	@Bean
-	public PropertyPlaceholderConfigurer propertyPlaceholder() {
+	public static PropertyPlaceholderConfigurer propertyPlaceholder() {
 		PropertyPlaceholderConfigurer configurer = new PropertyPlaceholderConfigurer();
 		Resource[] resources = new Resource[] {
 			new ClassPathResource("defaults.properties"),

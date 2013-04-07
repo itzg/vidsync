@@ -18,6 +18,7 @@ public class CommonConfig {
 	@Bean
 	public TaskScheduler taskScheduler() {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+		scheduler.setThreadNamePrefix("ScheduledTask-");
 		return scheduler;
 	}
 }

@@ -3,6 +3,7 @@ package me.itzgeoff.vidsync.common;
 import java.io.File;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
@@ -40,7 +41,7 @@ public class MovieInfoParser {
 	}
 	
 	public void validate(File file) throws IOException, VidSyncException {
-		try (FileChannel channel = FileChannel.open(file.toPath())) {
+		try (FileChannel channel = FileChannel.open(file.toPath(), StandardOpenOption.READ)) {
 			try (IsoFile isoFile = new IsoFile(channel)) {
 				if (isoFile.getBoxes(MovieBox.class).isEmpty()) {
 					throw new VidSyncException("Missing moov box");
@@ -49,6 +50,9 @@ public class MovieInfoParser {
 				if (isoFile.getBoxes(MediaDataBox.class).isEmpty()) {
 					throw new VidSyncException("Missing mdat box");
 				}
+			}
+			catch (Exception e) {
+			    throw new VidSyncException("Unable to parse file");
 			}
 		}
 	}

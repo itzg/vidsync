@@ -13,6 +13,7 @@
 	<logger name="org.springframework" level="warn"/>
 	
 	<logger name="me.itzgeoff.vidsync.server.WatchedFileRouter" level="debug"/>
+	<logger name="me.itzgeoff.vidsync.server.PathWatcher" level="debug"/>
 
 	<root level="info">
 		<appender-ref ref="STDOUT" />

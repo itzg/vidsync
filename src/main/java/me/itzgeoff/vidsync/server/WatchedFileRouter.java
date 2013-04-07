@@ -59,10 +59,15 @@ public class WatchedFileRouter {
 
 	@Async("worker")
 	public void in(File videoFile) {
+        if (!videoFile.exists()) {
+            logger.debug("Given a file that doesn't actually exist: {}", videoFile);
+            return;
+        }
+        
 		logger.trace("Incoming file {}", videoFile);
 		
 		if (incomingFiles.contains(videoFile)) {
-			logger.trace("Already tracking incoming {}", videoFile);
+			logger.debug("Already tracking incoming {}", videoFile);
 			return;
 		}
 		
@@ -75,7 +80,7 @@ public class WatchedFileRouter {
 				nextPotentiallyKnownVideoFile(entry, videoFile);
 			}
 		} catch (IOException e) {
-			logger.error("Trying to get canonical form of {}", e, videoFile);
+			logger.error("Trying to get canonical form {}", e);
 		}
 		
 	}
@@ -145,7 +150,8 @@ public class WatchedFileRouter {
 				
 				mdatSignatureParser.parseAsync(videoFile, signatureResultConsumer);
 			} catch (VidSyncException e) {
-				logger.warn("Validating file {}", e, videoFile);
+			    // Only a debug level since this can happen while the file is still being encoded
+				logger.debug("Validating file {}", e, videoFile);
 				incomingFiles.remove(videoFile);
 			}
 		}
