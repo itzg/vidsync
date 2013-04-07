@@ -7,6 +7,7 @@ import me.itzgeoff.vidsync.services.VidSyncClientService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.style.ToStringCreator;
 
 public class ServerViewOfClientInstance {
 	private static final Logger logger = LoggerFactory.getLogger(ServerViewOfClientInstance.class);
@@ -17,6 +18,13 @@ public class ServerViewOfClientInstance {
 	private ServiceInfo serviceInfo;
 
 	private VidSyncClientService proxy;
+	
+	@Override
+	public String toString() {
+	    return new ToStringCreator(this)
+	    .append("serviceInfo", serviceInfo)
+	    .toString();
+	}
 
 	public ServiceInfo getServiceInfo() {
 		return serviceInfo;
@@ -30,4 +38,8 @@ public class ServerViewOfClientInstance {
 		String response = proxy.hello();
 		logger.debug("Response from client was '{}'", response);
 	}
+	
+	public VidSyncClientService getProxy() {
+        return proxy;
+    }
 }

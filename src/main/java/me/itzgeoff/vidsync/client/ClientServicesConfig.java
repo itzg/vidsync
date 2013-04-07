@@ -22,7 +22,21 @@ public class ClientServicesConfig {
 	private static final Logger logger = LoggerFactory.getLogger(ClientServicesConfig.class);
 	
 	@Autowired
+	private ClientAppConfig appConfig;
+	
+	@Autowired
 	private VidSyncClientService vidsyncService;
+	
+	@Bean
+	public VidSyncClientService vidSyncClientService() {
+	    return new VidSyncClientServiceImpl() {
+            
+            @Override
+            protected Receiver createReceiver() {
+                return appConfig.receiver();
+            }
+        };
+	}
 	
 	@Bean
 	public DynamicRmiServiceExporter vidsyncServiceExporter() {

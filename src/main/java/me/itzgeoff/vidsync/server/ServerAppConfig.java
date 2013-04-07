@@ -109,15 +109,27 @@ public class ServerAppConfig {
 	
 	@Bean
 	@Qualifier("signature")
-	public TaskExecutor signatureExecutor(@Value("${signature.executor.maxPoolSize:2}") int signatureMaxPoolSize) {
+	public TaskExecutor signatureExecutor(@Value("${executors.signature.maxPoolSize:2}") int maxPoolSize) {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		
-		logger.debug("Creating signature executor with pool size of {}", signatureMaxPoolSize);
-		executor.setCorePoolSize(signatureMaxPoolSize);
-		executor.setMaxPoolSize(signatureMaxPoolSize);
+		logger.debug("Creating signature executor with pool size of {}", maxPoolSize);
+		executor.setCorePoolSize(maxPoolSize);
+		executor.setMaxPoolSize(maxPoolSize);
         executor.setThreadNamePrefix("SignatureScan-");
 
 		return executor;
+	}
+	
+	@Bean
+	@Qualifier("sender")
+	public TaskExecutor senderExecutor(@Value("${executors.sender.maxPoolSize:1}") int maxPoolSize) {
+	    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+	    
+	    executor.setCorePoolSize(maxPoolSize);
+	    executor.setMaxPoolSize(maxPoolSize);
+	    executor.setThreadNamePrefix("Sender-");
+	    
+	    return executor;
 	}
 	
 	@Bean

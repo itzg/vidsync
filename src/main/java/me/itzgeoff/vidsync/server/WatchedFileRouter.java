@@ -11,8 +11,8 @@ import me.itzgeoff.vidsync.common.MovieInfo;
 import me.itzgeoff.vidsync.common.MovieInfoParser;
 import me.itzgeoff.vidsync.common.ResultConsumer;
 import me.itzgeoff.vidsync.common.VidSyncException;
-import me.itzgeoff.vidsync.domain.server.WatchedFile;
-import me.itzgeoff.vidsync.domain.server.WatchedFilesRepository;
+import me.itzgeoff.vidsync.domain.common.WatchedFile;
+import me.itzgeoff.vidsync.domain.common.WatchedFilesRepository;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,6 +91,11 @@ public class WatchedFileRouter {
 		if (videoFile.lastModified() == entry.getLastModified() && 
 				videoFile.length() == entry.getFileSize()) {
 			logger.debug("Validated {}", videoFile);
+			
+			entry.setTheFile(videoFile);
+			
+			out(videoFile);
+			distributor.distributeExistingFile(entry);
 			return;
 		}
 		else {
@@ -99,43 +104,68 @@ public class WatchedFileRouter {
 	}
 
 	protected void nextFoundSignature(final File videoFile, String signature) {
+	    
+	    // Look it up by signature to see if only metadata changed
 		WatchedFile watchedFile = repository.findByContentSignature(signature);
 		
-		try {
-			
-			if (watchedFile != null) {
-				nextPotentiallyChangedFile(videoFile, watchedFile);
-			}
-			else {
-				try {
-					watchedFile = new WatchedFile(videoFile);
-					watchedFile.setContentSignature(signature);
-					
-					MovieInfo movieInfo = movieInfoParser.parse(videoFile);
-					watchedFile.setTitle(movieInfo.getTitle());
-					
-					watchedFile = repository.save(watchedFile);
-					
-					logger.debug("Saved newly watched file {}", watchedFile);
-					
-					distributor.distributeNewFile(watchedFile);
-				} catch (IOException | VidSyncException e) {
-					logger.error("Trying to init metadata from {}", e, videoFile);
-				}
-			}
-		
+		if (watchedFile != null) {
+			nextPotentiallyChangedFile(videoFile, watchedFile);
 		}
-		finally {
-			incomingFiles.remove(videoFile);
+		else {
+			try {
+				watchedFile = new WatchedFile(videoFile);
+				watchedFile.setContentSignature(signature);
+				
+				MovieInfo movieInfo = movieInfoParser.parse(videoFile);
+				watchedFile.setTitle(movieInfo.getTitle());
+				
+				watchedFile = repository.save(watchedFile);
+				
+				logger.debug("Saved newly watched file {}", watchedFile);
+				
+				out(videoFile);
+				distributor.distributeNewFile(watchedFile);
+			} catch (IOException | VidSyncException e) {
+			    out(videoFile);
+			}
 		}
 	}
 
-	protected void nextPotentiallyChangedFile(File videoFile,
+	protected void out(File videoFile) {
+        incomingFiles.remove(videoFile);
+    }
+
+    protected void nextPotentiallyChangedFile(File videoFile,
 			WatchedFile watchedFile) {
 		logger.debug("Checking for potential changes of {}", videoFile);
 		
-		// TODO Auto-generated method stub
+		watchedFile.setTheFile(videoFile);
 		
+		MovieInfo movieInfo;
+		try {
+            movieInfo = movieInfoParser.parse(videoFile);
+        } catch (IOException | VidSyncException e) {
+            logger.error("Unable to parse movie info from {}", videoFile);
+            out(videoFile);
+            return;
+        }
+		
+		boolean changed = true;
+		
+		if (!movieInfo.getTitle().equals(watchedFile.getTitle())) {
+		    changed = true;
+		    watchedFile.setTitle(movieInfo.getTitle());
+		}
+		
+		if (changed) {
+		    repository.save(watchedFile);
+		    distributor.distributeChangedFile(watchedFile);
+		}
+		else {
+		    distributor.distributeExistingFile(watchedFile);
+		}
+		
+		out(videoFile);
 	}
 
 	protected void nextUnknownVideoFile(File videoFile) throws IOException {

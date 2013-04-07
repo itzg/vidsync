@@ -1,4 +1,5 @@
-package me.itzgeoff.vidsync.domain.server;
+package me.itzgeoff.vidsync.domain.common;
+
 
 import org.springframework.data.repository.CrudRepository;
 

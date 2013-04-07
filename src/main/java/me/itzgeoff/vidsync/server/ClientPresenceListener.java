@@ -29,6 +29,9 @@ public class ClientPresenceListener {
 	@Autowired
 	private ServerViewOfClientManager clientManager;
 	
+	@Autowired
+	private ClientDistributor distributor;
+	
 	private ServiceListener serviceListener;
 	
 	@PostConstruct
@@ -54,7 +57,6 @@ public class ClientPresenceListener {
 				// this one isn't too interesting...we'll wait for service resolved
 			}
 		};
-		jmDNS.addServiceListener(VidSyncConstants.MDNS_SERVICE_TYPE, serviceListener);
 		
 		
 		taskExecutor.execute(new Runnable() {
@@ -70,17 +72,24 @@ public class ClientPresenceListener {
 						}
 					}
 				}
+				
+		        jmDNS.addServiceListener(VidSyncConstants.MDNS_SERVICE_TYPE, serviceListener);
 			}
 		});
 	}
 	
 	protected void handleClientRemoved(ServiceInfo info) {
+	    logger.debug("Saw removal of {}", info);
+	    
+	    distributor.removeClient(info);
 	}
 
 	protected void handleClientResolved(ServiceInfo info) {
 		logger.debug("Resolved {}", info);
 		
-		clientManager.createViewOfClient(info);
+		ServerViewOfClientInstance viewOfClient = clientManager.createViewOfClient(info);
+		
+		distributor.addClient(viewOfClient);
 	}
 
 	@PreDestroy

@@ -12,8 +12,7 @@
 	<logger name="org.hibernate" level="warn"/>
 	<logger name="org.springframework" level="warn"/>
 	
-	<logger name="me.itzgeoff.vidsync.server.WatchedFileRouter" level="debug"/>
-	<logger name="me.itzgeoff.vidsync.server.PathWatcher" level="debug"/>
+	<logger name="me.itzgeoff.vidsync" level="debug"/>
 
 	<root level="info">
 		<appender-ref ref="STDOUT" />

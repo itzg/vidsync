@@ -1,4 +1,4 @@
-package me.itzgeoff.vidsync.domain.server;
+package me.itzgeoff.vidsync.domain.common;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,7 +30,7 @@ public class WatchedFile implements Serializable {
 	private String contentSignature;
 	
 	@Transient
-	private File theFile;
+	private transient File theFile;
 
 	public WatchedFile() {
 	}
