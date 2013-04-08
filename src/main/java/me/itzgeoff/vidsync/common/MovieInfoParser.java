@@ -51,9 +51,9 @@ public class MovieInfoParser {
 					throw new VidSyncException("Missing mdat box");
 				}
 			}
-			catch (Exception e) {
-			    throw new VidSyncException("Unable to parse file");
-			}
+		}
+		catch (Exception e) {
+		    throw new VidSyncException("Unable to parse file");
 		}
 	}
 

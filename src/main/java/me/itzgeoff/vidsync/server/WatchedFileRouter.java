@@ -182,7 +182,7 @@ public class WatchedFileRouter {
 			} catch (VidSyncException e) {
 			    // Only a debug level since this can happen while the file is still being encoded
 				logger.debug("Validating file {}", e, videoFile);
-				incomingFiles.remove(videoFile);
+				out(videoFile);
 			}
 		}
 	}
