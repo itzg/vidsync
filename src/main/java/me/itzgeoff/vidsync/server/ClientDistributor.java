@@ -57,7 +57,7 @@ public class ClientDistributor {
         for (ServerViewOfClientInstance view : views) {
             logger.debug("Offering {} of type {} to {}", watchedFile, type, view);
             OfferResponse response = view.getProxy().offer(watchedFile, type);
-            logger.debug("Responded with {}", view, response);
+            logger.debug("Responded with {}", response, view);
             
             switch (response) {
             case SEND_CONTENT:

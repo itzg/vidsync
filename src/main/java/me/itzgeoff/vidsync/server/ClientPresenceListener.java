@@ -40,14 +40,14 @@ public class ClientPresenceListener {
 			
 			@Override
 			public void serviceResolved(ServiceEvent evt) {
-				if (evt.getName().equals(VidSyncConstants.MDNS_NAME_VIDSYNC_CLIENT)) {
+				if (evt.getName().startsWith(VidSyncConstants.MDNS_NAME_VIDSYNC_CLIENT)) {
 					handleClientResolved(evt.getInfo());
 				}
 			}
 			
 			@Override
 			public void serviceRemoved(ServiceEvent evt) {
-				if (evt.getName().equals(VidSyncConstants.MDNS_NAME_VIDSYNC_CLIENT)) {
+				if (evt.getName().startsWith(VidSyncConstants.MDNS_NAME_VIDSYNC_CLIENT)) {
 					handleClientRemoved(evt.getInfo());
 				}
 			}
@@ -67,7 +67,7 @@ public class ClientPresenceListener {
 				ServiceInfo[] runningAlready = jmDNS.list(VidSyncConstants.MDNS_SERVICE_TYPE);
 				if (runningAlready != null) {
 					for (ServiceInfo serviceInfo : runningAlready) {
-						if (serviceInfo.getName().equals(VidSyncConstants.MDNS_NAME_VIDSYNC_CLIENT)) {
+						if (serviceInfo.getName().startsWith(VidSyncConstants.MDNS_NAME_VIDSYNC_CLIENT)) {
 							handleClientResolved(serviceInfo);
 						}
 					}

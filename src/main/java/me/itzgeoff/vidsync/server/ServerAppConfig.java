@@ -58,8 +58,8 @@ public class ServerAppConfig {
 		factoryBean.setServiceInterface(VidSyncClientService.class);
 		
 		// This dynamically/discovered URL is what drove the need for this fake bean creator.
-		factoryBean.setServiceUrl(String.format("rmi://%s:%d/%s",
-				hostAddress, port, VidSyncConstants.RMI_SERVICE_CLIENT));
+//		factoryBean.setServiceUrl(String.format("rmi://%s:%d/%s",
+//				hostAddress, port, VidSyncConstants.RMI_SERVICE_CLIENT));
 		
 		// This is another part of the fake-ness...make the code think it was blessed as a Spring bean and
 		// trigger the RMI proxy construction.
