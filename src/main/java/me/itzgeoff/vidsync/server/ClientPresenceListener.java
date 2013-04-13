@@ -33,21 +33,21 @@ public class ClientPresenceListener {
 	private ClientDistributor distributor;
 	
 	private ServiceListener serviceListener;
-	
+
 	@PostConstruct
 	public void register() {
 		serviceListener = new ServiceListener() {
 			
 			@Override
 			public void serviceResolved(ServiceEvent evt) {
-				if (evt.getName().equals(VidSyncConstants.MDNS_NAME_VIDSYNC_CLIENT)) {
+				if (isClientName(evt.getName())) {
 					handleClientResolved(evt.getInfo());
 				}
 			}
 			
 			@Override
 			public void serviceRemoved(ServiceEvent evt) {
-				if (evt.getName().equals(VidSyncConstants.MDNS_NAME_VIDSYNC_CLIENT)) {
+				if (isClientName(evt.getName())) {
 					handleClientRemoved(evt.getInfo());
 				}
 			}
@@ -58,7 +58,7 @@ public class ClientPresenceListener {
 			}
 		};
 		
-		
+
 		taskExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
@@ -67,7 +67,7 @@ public class ClientPresenceListener {
 				ServiceInfo[] runningAlready = jmDNS.list(VidSyncConstants.MDNS_SERVICE_TYPE);
 				if (runningAlready != null) {
 					for (ServiceInfo serviceInfo : runningAlready) {
-						if (serviceInfo.getName().equals(VidSyncConstants.MDNS_NAME_VIDSYNC_CLIENT)) {
+						if (isClientName(serviceInfo.getName())) {
 							handleClientResolved(serviceInfo);
 						}
 					}
@@ -77,7 +77,11 @@ public class ClientPresenceListener {
 			}
 		});
 	}
-	
+
+    private boolean isClientName(String mdnsName) {
+        return mdnsName.startsWith(VidSyncConstants.MDNS_NAME_VIDSYNC_CLIENT);
+    }
+
 	protected void handleClientRemoved(ServiceInfo info) {
 	    logger.debug("Saw removal of {}", info);
 	    
@@ -96,4 +100,5 @@ public class ClientPresenceListener {
 	public void deregister() {
 		jmDNS.removeServiceListener(VidSyncConstants.MDNS_SERVICE_TYPE, serviceListener);
 	}
+
 }

@@ -4,10 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Transient;
+import javax.validation.constraints.NotNull;
 
 import org.springframework.core.style.ToStringCreator;
 
@@ -27,6 +29,8 @@ public class WatchedFile implements Serializable {
 	
 	private long fileSize;
 	
+	@NotNull
+	@Column(unique=true)
 	private String contentSignature;
 	
 	@Transient

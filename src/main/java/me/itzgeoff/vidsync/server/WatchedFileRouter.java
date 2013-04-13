@@ -33,7 +33,7 @@ public class WatchedFileRouter {
 		@Override
 		public void failedToReachResult(File videoFile, Exception e) {
 			logger.error("Unable to parse signature from {}", e, videoFile);
-			incomingFiles.remove(videoFile);
+			out(videoFile);
 		}
 		
 	}
@@ -66,23 +66,22 @@ public class WatchedFileRouter {
         
 		logger.trace("Incoming file {}", videoFile);
 		
-		if (incomingFiles.contains(videoFile)) {
-			logger.debug("Already tracking incoming {}", videoFile);
-			return;
+		if (incomingFiles.add(videoFile)) {
+    		try {
+    			WatchedFile entry = repository.findByPath(videoFile.getCanonicalPath());
+    			if (entry == null) {
+    				nextUnknownVideoFile(videoFile);
+    			}
+    			else {
+    				nextPotentiallyKnownVideoFile(entry, videoFile);
+    			}
+    		} catch (IOException e) {
+    			logger.error("Trying to get canonical form {}", e);
+    		}
 		}
-		
-		try {
-			WatchedFile entry = repository.findByPath(videoFile.getCanonicalPath());
-			if (entry == null) {
-				nextUnknownVideoFile(videoFile);
-			}
-			else {
-				nextPotentiallyKnownVideoFile(entry, videoFile);
-			}
-		} catch (IOException e) {
-			logger.error("Trying to get canonical form {}", e);
+		else {
+            logger.debug("Already tracking incoming {}", videoFile);
 		}
-		
 	}
 	
 	protected void nextPotentiallyKnownVideoFile(WatchedFile entry, File videoFile) throws IOException {
@@ -94,8 +93,7 @@ public class WatchedFileRouter {
 			
 			entry.setTheFile(videoFile);
 			
-			out(videoFile);
-			distributor.distributeExistingFile(entry);
+			distributor.distributeExistingFile(entry, createCompletionConsumer());
 			return;
 		}
 		else {
@@ -123,15 +121,30 @@ public class WatchedFileRouter {
 				
 				logger.debug("Saved newly watched file {}", watchedFile);
 				
-				out(videoFile);
-				distributor.distributeNewFile(watchedFile);
+				distributor.distributeNewFile(watchedFile, createCompletionConsumer());
 			} catch (IOException | VidSyncException e) {
 			    out(videoFile);
 			}
 		}
 	}
+	
+	private ResultConsumer<WatchedFile, Boolean> createCompletionConsumer() {
+	    return new ResultConsumer<WatchedFile, Boolean>() {
+            
+            @Override
+            public void failedToReachResult(WatchedFile in, Exception e) {
+                out(in.getTheFile());
+            }
+            
+            @Override
+            public void consumeResult(WatchedFile in, Boolean result) {
+                out(in.getTheFile());
+            }
+        };
+	}
 
-	protected void out(File videoFile) {
+	public void out(File videoFile) {
+	    logger.trace("Outgoing file {}", videoFile);
         incomingFiles.remove(videoFile);
     }
 
@@ -159,32 +172,27 @@ public class WatchedFileRouter {
 		
 		if (changed) {
 		    repository.save(watchedFile);
-		    distributor.distributeChangedFile(watchedFile);
+		    distributor.distributeChangedFile(watchedFile, createCompletionConsumer());
 		}
 		else {
-		    distributor.distributeExistingFile(watchedFile);
+		    distributor.distributeExistingFile(watchedFile, createCompletionConsumer());
 		}
-		
-		out(videoFile);
 	}
 
 	protected void nextUnknownVideoFile(File videoFile) throws IOException {
 		logger.debug("Processing unknown file {}", videoFile);
 		
-		// Check the result to protect against race condition
-		if (incomingFiles.add(videoFile)) {
-			try {
-				movieInfoParser.validate(videoFile);
+		try {
+			movieInfoParser.validate(videoFile);
 
-				logger.debug("Will parse signature of {}", videoFile);
-				
-				mdatSignatureParser.parseAsync(videoFile, signatureResultConsumer);
-			} catch (VidSyncException e) {
-			    // Only a debug level since this can happen while the file is still being encoded
-				logger.debug("Validating file {}", e, videoFile);
-				out(videoFile);
-			}
+			logger.debug("Will parse signature of {}", videoFile);
+			
+			mdatSignatureParser.parseAsync(videoFile, signatureResultConsumer);
+		} catch (VidSyncException e) {
+		    // Only a debug level since this can happen while the file is still being encoded
+			logger.debug("Validating file {}", e, videoFile);
+			out(videoFile);
 		}
 	}
-	
+
 }

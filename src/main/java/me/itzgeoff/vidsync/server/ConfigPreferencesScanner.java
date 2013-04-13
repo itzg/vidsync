@@ -4,10 +4,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ScheduledFuture;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,10 +34,13 @@ public class ConfigPreferencesScanner {
 	private long preferencesScanPeriod;
 	
 	private Map<String, String> previousPrefs;
-	
-	@PostConstruct
-	public void init() {
-		taskScheduler.scheduleAtFixedRate(new Runnable() {
+
+    @SuppressWarnings("rawtypes")
+    private ScheduledFuture scheduled;
+
+    @PostConstruct
+	public void start() {
+		scheduled = taskScheduler.scheduleAtFixedRate(new Runnable() {
 			private boolean running;
 			
 			@Override
@@ -54,7 +59,12 @@ public class ConfigPreferencesScanner {
 			}
 		}, preferencesScanPeriod);
 	}
-
+    
+    @PreDestroy
+    public void stop() {
+        scheduled.cancel(true);
+    }
+	
 	protected void scanPreferences() {
 		Preferences serverPreferences = ConfigFactory.createServerPreferences();
 		

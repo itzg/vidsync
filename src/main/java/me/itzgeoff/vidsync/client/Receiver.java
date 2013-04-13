@@ -41,7 +41,7 @@ public class Receiver {
     @Autowired
     private WatchedFilesRepository repository;
 
-    private WatchedFile watchedFile;
+    private WatchedFile givenWatchedFile;
 
     private FileChannel fileChannel;
 
@@ -58,7 +58,7 @@ public class Receiver {
 
 
     public int createSocket(WatchedFile watchedFile) throws IOException {
-        this.watchedFile = watchedFile;
+        this.givenWatchedFile = watchedFile;
 
         videoFilePath = baseDirectory.toPath().resolve(normalizeTitleToFilename(watchedFile.getTitle())+"."+suffix);
         
@@ -92,7 +92,8 @@ public class Receiver {
                 }
                 
                 WatchedFile ourWatchedFile = new WatchedFile();
-                ourWatchedFile.setTitle(watchedFile.getTitle());
+                ourWatchedFile.setTitle(givenWatchedFile.getTitle());
+                ourWatchedFile.setContentSignature(givenWatchedFile.getContentSignature());
                 ourWatchedFile.setPath(videoFilePath.toString());
                 ourWatchedFile = repository.save(ourWatchedFile);
                 

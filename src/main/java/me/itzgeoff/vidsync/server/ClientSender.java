@@ -6,6 +6,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.file.StandardOpenOption;
 
+import me.itzgeoff.vidsync.common.ResultConsumer;
 import me.itzgeoff.vidsync.domain.common.WatchedFile;
 
 import org.slf4j.Logger;
@@ -23,7 +24,7 @@ public class ClientSender {
     @Value("${senderBufferSize:5000}")
     private int senderBufferSize;
     
-    public void send(WatchedFile file, ServerViewOfClientInstance clientView) {
+    public void send(WatchedFile file, ServerViewOfClientInstance clientView, ResultConsumer<WatchedFile, Boolean> resultConsumer) {
         logger.debug("Sending {} to {}", file, clientView);
         
         try {
@@ -47,11 +48,13 @@ public class ClientSender {
                     }
                     
                     logger.debug("Finished sending");
+                    resultConsumer.consumeResult(file, true);
                 }
             }
             
         } catch (Exception e) {
             logger.error("Failed to prepare or send file", e);
+            resultConsumer.failedToReachResult(file, e);
         }
     }
 }

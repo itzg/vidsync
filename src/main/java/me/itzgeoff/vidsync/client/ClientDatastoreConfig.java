@@ -1,9 +1,12 @@
 package me.itzgeoff.vidsync.client;
 
+import java.sql.SQLException;
+
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 import org.h2.jdbcx.JdbcConnectionPool;
+import org.h2.tools.Server;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +36,9 @@ public class ClientDatastoreConfig {
 	@Bean
 	public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean() {
 		LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
-		emf.setPackagesToScan("me.itzgeoff.vidsync.domain.common","me.itzgeoff.vidsync.domain.client");
+		emf.setPackagesToScan(
+		        "me.itzgeoff.vidsync.domain.common",
+		        "me.itzgeoff.vidsync.domain.client");
 		emf.setDataSource(dataSource());
 		emf.setJpaVendorAdapter(jpaVendorAdapter());
 		return emf;
@@ -56,5 +61,12 @@ public class ClientDatastoreConfig {
 		txManager.setEntityManagerFactory(entityManagerFactory());
 		return txManager;
 	}
+    
+    @Bean
+    public Server h2WebConsole() throws SQLException {
+        Server webServer = Server.createWebServer("-webPort","8083");
+        webServer.start();
+        return webServer;
+    }
 
 }
