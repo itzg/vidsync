@@ -15,6 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
+import com.yammer.metrics.Counter;
+import com.yammer.metrics.MetricRegistry;
+
 @Component
 public class ClientPresenceListener {
 	
@@ -32,10 +35,20 @@ public class ClientPresenceListener {
 	@Autowired
 	private ClientDistributor distributor;
 	
+    @Autowired
+    private MetricRegistry metrics;
+	
 	private ServiceListener serviceListener;
+
+    private Counter counterClientsAdded;
+
+    private Counter counterClientsConnected;
 
 	@PostConstruct
 	public void register() {
+	    counterClientsAdded = metrics.counter(MetricRegistry.name(ClientPresenceListener.class, "clients-added-total"));
+	    counterClientsConnected = metrics.counter(MetricRegistry.name(ClientPresenceListener.class, "clients-connected-current"));
+	    
 		serviceListener = new ServiceListener() {
 			
 			@Override
@@ -90,6 +103,8 @@ public class ClientPresenceListener {
 
 	protected void handleClientResolved(ServiceInfo info) {
 		logger.debug("Resolved {}", info);
+		counterClientsAdded.inc();
+		counterClientsConnected.inc();
 		
 		ServerViewOfClientInstance viewOfClient = clientManager.createViewOfClient(info);
 		
@@ -98,6 +113,7 @@ public class ClientPresenceListener {
 
 	@PreDestroy
 	public void deregister() {
+	    counterClientsConnected.dec();
 		jmDNS.removeServiceListener(VidSyncConstants.MDNS_SERVICE_TYPE, serviceListener);
 	}
 

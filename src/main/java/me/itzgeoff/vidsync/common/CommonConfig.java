@@ -8,6 +8,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import com.yammer.metrics.JmxReporter;
+import com.yammer.metrics.MetricRegistry;
+
 @Configuration
 @EnableTransactionManagement
 public class CommonConfig {
@@ -22,5 +25,17 @@ public class CommonConfig {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.setThreadNamePrefix("ScheduledTask-");
 		return scheduler;
+	}
+	
+	@Bean
+	public MetricRegistry metrics() {
+	    return new MetricRegistry("vidsync");
+	}
+	
+	@Bean
+	public JmxReporter metricsJmxReporter() {
+	    JmxReporter reporter = JmxReporter.forRegistry(metrics()).build();
+	    reporter.start();
+        return reporter;
 	}
 }

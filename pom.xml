@@ -78,6 +78,11 @@
 			<artifactId>hibernate-validator</artifactId>
 			<version>4.3.1.Final</version>
 		</dependency>
+		<dependency>
+			<groupId>com.yammer.metrics</groupId>
+			<artifactId>metrics-core</artifactId>
+			<version>${yammer.metrics.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -143,5 +148,6 @@
 		<spring.version>3.2.2.RELEASE</spring.version>
 		<logback.version>1.0.10</logback.version>
 		<hibernate.jpa.version>4.1.10.Final</hibernate.jpa.version>
+		<yammer.metrics.version>3.0.0-BETA1</yammer.metrics.version>
 	</properties>
 </project>
