@@ -149,6 +149,7 @@ public class PathWatcher implements PreferencesConsumer {
             for (WatchKey watchKey : watches.values()) {
                 watchKey.cancel();
             }
+            watches.clear();
             
             if (watcherTask != null) {
                 watcherTask.cancel(false);

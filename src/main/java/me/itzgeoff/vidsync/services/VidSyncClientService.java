@@ -1,6 +1,7 @@
 package me.itzgeoff.vidsync.services;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import me.itzgeoff.vidsync.common.OfferResponse;
 import me.itzgeoff.vidsync.common.OfferType;

@@ -1,6 +1,5 @@
 package me.itzgeoff.vidsync.client;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -28,18 +27,15 @@ import org.springframework.stereotype.Component;
 public class Receiver {
     
     private static final Logger logger = LoggerFactory.getLogger(Receiver.class);
-
-    @Value("${client.baseDirectory}")
-    private File baseDirectory;
-    
-    @Value("${client.videoFileSuffix}")
-    private String suffix;
     
     @Value("${client.transferBufferSize}")
     private int transferBufferSize;
     
     @Autowired
     private WatchedFilesRepository repository;
+    
+    @Autowired
+    private ReceiverSupport receiverSupport;
 
     private WatchedFile givenWatchedFile;
 
@@ -56,11 +52,10 @@ public class Receiver {
         transferBuffer = ByteBuffer.allocate(transferBufferSize);
     }
 
-
     public int createSocket(WatchedFile watchedFile) throws IOException {
         this.givenWatchedFile = watchedFile;
 
-        videoFilePath = baseDirectory.toPath().resolve(normalizeTitleToFilename(watchedFile.getTitle())+"."+suffix);
+        videoFilePath = receiverSupport.resolveTitleToFilePath(watchedFile.getTitle());
         
         fileChannel = FileChannel.open(videoFilePath, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         logger.debug("Opened file channel on {}", videoFilePath);
@@ -71,10 +66,6 @@ public class Receiver {
         logger.debug("Opened server socket {}", serverSocketChannel);
         
         return ((InetSocketAddress)serverSocketChannel.getLocalAddress()).getPort();
-    }
-    
-    private String normalizeTitleToFilename(String title) {
-        return title.replaceAll(":", "_");
     }
 
 

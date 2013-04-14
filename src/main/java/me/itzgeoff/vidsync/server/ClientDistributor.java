@@ -92,7 +92,14 @@ public class ClientDistributor {
             final DistributionKey distributionKey = new DistributionKey(watchedFile, view.getServiceInfo());
             if (distributionsInFlight.add(distributionKey)) {
                 logger.debug("Offering {} of type {} to {}", watchedFile, type, view);
-                OfferResponse response = view.getProxy().offer(watchedFile, type);
+                OfferResponse response;
+                try {
+                    response = view.getProxy().offer(watchedFile, type);
+                } catch (Exception e) {
+                    logger.error("Unexpected error while offering to "+view, e);
+                    distributionsInFlight.remove(distributionKey);
+                    continue;
+                }
                 logger.debug("Response for {} is {}", watchedFile, response);
                 
                 switch (response) {

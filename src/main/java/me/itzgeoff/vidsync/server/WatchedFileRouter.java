@@ -163,15 +163,16 @@ public class WatchedFileRouter {
             return;
         }
 		
-		boolean changed = true;
-		
 		if (!movieInfo.getTitle().equals(watchedFile.getTitle())) {
-		    changed = true;
 		    watchedFile.setTitle(movieInfo.getTitle());
-		}
-		
-		if (changed) {
+		    try {
+                watchedFile.setPath(videoFile.getCanonicalPath());
+            } catch (IOException e) {
+                watchedFile.setPath(videoFile.getAbsolutePath());
+            }
+		    watchedFile.setTheFile(videoFile);
 		    repository.save(watchedFile);
+		    
 		    distributor.distributeChangedFile(watchedFile, createCompletionConsumer());
 		}
 		else {

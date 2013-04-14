@@ -18,7 +18,9 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
-@EnableJpaRepositories({"me.itzgeoff.vidsync.domain.common","me.itzgeoff.vidsync.domain.client"})
+@EnableJpaRepositories({
+    "me.itzgeoff.vidsync.domain.common",
+    "me.itzgeoff.vidsync.domain.client"})
 @EnableTransactionManagement
 public class ClientDatastoreConfig {
     
