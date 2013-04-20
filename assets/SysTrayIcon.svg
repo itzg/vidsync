@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="744.09448819"
+   height="1052.3622047"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.2 r9819"
+   sodipodi:docname="New document 1">
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1"
+     inkscape:cx="149"
+     inkscape:cy="520"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:snap-global="false">
+    <sodipodi:guide
+       id="guide4967"
+       position="179,723"
+       orientation="0.60688444,0.79479008" />
+  </sodipodi:namedview>
+  <defs
+     id="defs4">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient5047">
+      <stop
+         style="stop-color:#cbcbcb;stop-opacity:1"
+         offset="0"
+         id="stop5049" />
+      <stop
+         style="stop-color:#000000;stop-opacity:1"
+         offset="1"
+         id="stop5051" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient5035">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1"
+         offset="0"
+         id="stop5037" />
+      <stop
+         style="stop-color:#000000;stop-opacity:0.47089946"
+         offset="1"
+         id="stop5039" />
+    </linearGradient>
+    <marker
+       style="overflow:visible;"
+       id="Arrow1Send"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow1Send">
+      <path
+         transform="scale(0.2) rotate(180) translate(6,0)"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt;marker-start:none;"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         id="path3955" />
+    </marker>
+    <marker
+       style="overflow:visible;"
+       id="Arrow2Mend"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         transform="scale(0.6) rotate(180) translate(0,0)"
+         d="M 8.7185878,4.0337352 L -2.2072895,0.016013256 L 8.7185884,-4.0017078 C 6.9730900,-1.6296469 6.9831476,1.6157441 8.7185878,4.0337352 z "
+         style="font-size:12.0;fill-rule:evenodd;stroke-width:0.62500000;stroke-linejoin:round;"
+         id="path3967" />
+    </marker>
+    <marker
+       style="overflow:visible;"
+       id="Arrow2Lend"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow2Lend">
+      <path
+         transform="scale(1.1) rotate(180) translate(1,0)"
+         d="M 8.7185878,4.0337352 L -2.2072895,0.016013256 L 8.7185884,-4.0017078 C 6.9730900,-1.6296469 6.9831476,1.6157441 8.7185878,4.0337352 z "
+         style="font-size:12.0;fill-rule:evenodd;stroke-width:0.62500000;stroke-linejoin:round;"
+         id="path3961" />
+    </marker>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5035"
+       id="linearGradient5041"
+       x1="361.22073"
+       y1="180.7384"
+       x2="647.2207"
+       y2="466.7384"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5047"
+       id="linearGradient5053"
+       x1="158"
+       y1="247.36218"
+       x2="428.2355"
+       y2="519.67297"
+       gradientUnits="userSpaceOnUse" />
+    <filter
+       id="filter5072"
+       inkscape:label="filter1"
+       width="1.1899999999999999">
+      <feGaussianBlur
+         stdDeviation="5.3906278026905836"
+         id="feGaussianBlur5074" />
+    </filter>
+  </defs>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer1"
+     inkscape:groupmode="layer"
+     inkscape:label="Layer 1">
+    <rect
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:14.89999961999999900;stroke-linecap:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect5060"
+       width="307"
+       height="306"
+       x="143"
+       y="231.36218"
+       inkscape:export-filename="C:\Users\Geoff\git\vidsync\src\main\resources\SysTrayIcon.png"
+       inkscape:export-xdpi="4.7199998"
+       inkscape:export-ydpi="4.7199998" />
+    <path
+       style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:url(#linearGradient5053);fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:14.90000000000000000;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans;stroke-miterlimit:4;stroke-dasharray:none"
+       d="m 143.875,232.21875 0,7.46875 0,290 0,7.4375 7.46875,0 290,0 7.4375,0 0,-7.4375 0,-290 0,-7.46875 -7.4375,0 -290,0 -7.46875,0 z m 14.90625,14.90625 275.09375,0 0,275.09375 -275.09375,0 0,-275.09375 z"
+       id="rect4997"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="C:\Users\Geoff\git\vidsync\src\main\resources\SysTrayIcon.png"
+       inkscape:export-xdpi="4.7199998"
+       inkscape:export-ydpi="4.7199998" />
+    <path
+       style="fill:none;stroke:#9f9f9f;stroke-width:35.59999847000000300;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-end:none;filter:url(#filter5072)"
+       d="m 401.429,487.96771 c -0.20828,0.0694 -28.83706,-104.66084 -70,-91 -26.30694,8.73054 -140,56 -140,56"
+       id="path5055"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="csc"
+       inkscape:export-xdpi="4.7199998"
+       inkscape:export-ydpi="4.7199998"
+       inkscape:export-filename="C:\Users\Geoff\git\vidsync\src\main\resources\SysTrayIcon.png" />
+    <path
+       inkscape:export-ydpi="4.7199998"
+       inkscape:export-xdpi="4.7199998"
+       sodipodi:nodetypes="csc"
+       inkscape:connector-curvature="0"
+       id="path3755"
+       d="m 403,492.36218 c 0,0 -22.72345,-270.22722 -92,-191 -72.16131,82.52635 -126,158 -126,158"
+       style="stroke-linejoin:miter;marker-end:none;stroke-opacity:1;stroke:#00b019;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-width:35.60000000000000100;fill:none"
+       inkscape:export-filename="C:\Users\Geoff\git\vidsync\src\main\resources\SysTrayIcon.png" />
+    <path
+       sodipodi:nodetypes="ccccc"
+       inkscape:connector-curvature="0"
+       id="path4965"
+       d="m 166,487.36218 0,-169 46,108 132,27 z"
+       style="fill:#00b019;fill-opacity:1;stroke:none"
+       inkscape:export-filename="C:\Users\Geoff\git\vidsync\src\main\resources\SysTrayIcon.png"
+       inkscape:export-xdpi="4.7199998"
+       inkscape:export-ydpi="4.7199998" />
+  </g>
+</svg>

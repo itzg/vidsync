@@ -1,0 +1,1 @@
+start /B javaw -cp vidsync.jar me.itzgeoff.vidsync.server.ServerUI
