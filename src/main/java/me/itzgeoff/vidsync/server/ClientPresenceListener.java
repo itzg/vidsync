@@ -56,6 +56,9 @@ public class ClientPresenceListener {
 				if (isClientName(evt.getName())) {
 					handleClientResolved(evt.getInfo());
 				}
+				else {
+				    logger.trace("Saw another service resolved: {}", evt.getInfo());
+				}
 			}
 			
 			@Override

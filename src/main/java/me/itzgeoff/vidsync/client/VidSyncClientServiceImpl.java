@@ -122,6 +122,7 @@ public abstract class VidSyncClientServiceImpl implements VidSyncClientService {
             Files.move(knownWatchedFile.getTheFile().toPath(), newFilePath);
             
             knownWatchedFile.setPath(newFilePath.toString());
+            knownWatchedFile.setTitle(newTitle);
             repository.save(knownWatchedFile);
         } catch (IOException e) {
             logger.error("Trying to rename changed file", e);

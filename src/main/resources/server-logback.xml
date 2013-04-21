@@ -31,6 +31,7 @@
 	<logger name="org.springframework" level="warn" />
 
 	<logger name="me.itzgeoff.vidsync" level="debug" />
+	<logger name="me.itzgeoff.vidsync.server.ClientPresenceListener" level="trace" />
 
 	<root level="info">
 		<appender-ref ref="FILE" />

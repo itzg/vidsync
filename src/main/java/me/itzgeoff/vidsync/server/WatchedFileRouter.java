@@ -97,6 +97,8 @@ public class WatchedFileRouter {
 			return;
 		}
 		else {
+		    logger.debug("Modified {} != {} or Size {} != {}", videoFile.lastModified(), entry.getLastModified(), 
+                videoFile.length(), entry.getFileSize());
 			nextUnknownVideoFile(videoFile);
 		}
 	}
@@ -164,20 +166,29 @@ public class WatchedFileRouter {
         }
 		
 		if (!movieInfo.getTitle().equals(watchedFile.getTitle())) {
+		    // Update our title info
 		    watchedFile.setTitle(movieInfo.getTitle());
 		    try {
                 watchedFile.setPath(videoFile.getCanonicalPath());
             } catch (IOException e) {
                 watchedFile.setPath(videoFile.getAbsolutePath());
             }
-		    watchedFile.setTheFile(videoFile);
-		    repository.save(watchedFile);
 		    
 		    distributor.distributeChangedFile(watchedFile, createCompletionConsumer());
 		}
 		else {
+		    // Just a courtesy refresh
 		    distributor.distributeExistingFile(watchedFile, createCompletionConsumer());
 		}
+		
+		// Save off any changes to the non-important, but tracked metadata
+        watchedFile.setFileSize(videoFile.length());
+        watchedFile.setLastModified(videoFile.lastModified());
+        watchedFile.setTheFile(videoFile);
+		
+		// Save it!
+		logger.debug("Saving updated {}", watchedFile);
+		repository.save(watchedFile);
 	}
 
 	protected void nextUnknownVideoFile(File videoFile) throws IOException {
