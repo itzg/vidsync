@@ -41,11 +41,13 @@ public class JmDNSCloser implements Delegate {
 	public void addJmDNS(JmDNS jmDNS) {
 		instances.add(jmDNS);
 		jmDNS.setDelegate(this);
+		logger.debug("Watching in order to close {}", jmDNS);
 	}
 
 	@PreDestroy
 	public void close() {
 		synchronized (instances) {
+		    logger.debug("Closing instances {}", instances);
 		    for (JmDNS jmDNS : instances) {
                 jmDNS.unregisterAllServices();
             }
@@ -57,6 +59,8 @@ public class JmDNSCloser implements Delegate {
      */
     @Override
     public void cannotRecoverFromIOError(JmDNS deadJmDNS, Collection<ServiceInfo> infos) {
+        logger.debug("Handling cannot-recover of {} with registered {}", deadJmDNS, infos);
+        
         try {
             deadJmDNS.unregisterAllServices();
             deadJmDNS.close();
@@ -70,6 +74,7 @@ public class JmDNSCloser implements Delegate {
             for (ServiceInfo serviceInfo : infos) {
                 jmDNS.registerService(serviceInfo);
             }
+            logger.debug("Created a new JmDNS {} with {}", jmDNS, infos);
             addJmDNS(jmDNS);
         } catch (IOException e) {
             logger.error("Failed to create new JmDNS", e);

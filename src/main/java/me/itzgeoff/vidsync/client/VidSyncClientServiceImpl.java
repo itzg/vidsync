@@ -1,8 +1,20 @@
+/**
+ * Copyright 2013 Geoff Bourne
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package me.itzgeoff.vidsync.client;
 
-import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
-import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static me.itzgeoff.vidsync.domain.client.LocalClientProperty.CLIENT_ID_KEY;
 
 import java.io.File;
@@ -85,8 +97,12 @@ public abstract class VidSyncClientServiceImpl implements VidSyncClientService {
      * @param knownWatchedFile with 'theFile' property filled with actual File
      */
     protected void resolveWatchFiles(WatchedFile offeredWatchedFile, WatchedFile knownWatchedFile) {
-        if (!offeredWatchedFile.getTitle().equals(knownWatchedFile.getTitle())) {
-            retitleWatchFile(knownWatchedFile, offeredWatchedFile.getTitle());
+        final String offeredTitle = offeredWatchedFile.getTitle();
+        final String knownTitle = knownWatchedFile.getTitle();
+        
+        if (!offeredTitle.equals(knownTitle)) {
+            logger.debug("Observed change in title from '{}' to '{}' of {}", knownTitle, offeredTitle, knownWatchedFile);
+            retitleWatchFile(knownWatchedFile, offeredTitle);
         }
     }
 
