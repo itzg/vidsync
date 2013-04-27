@@ -143,6 +143,14 @@ public class ServiceDiscovery {
             return super.hashCode() + remoteAddress.hashCode();
         }
         
+        /* (non-Javadoc)
+         * @see me.itzgeoff.vidsync.common.ServiceDiscovery.Service#toString()
+         */
+        @Override
+        public String toString() {
+            return super.toString() + " at " + remoteAddress;
+        }
+        
         public void touch(short newTtl) {
             this.ttl = newTtl;
             timeLastSeen = System.currentTimeMillis();
@@ -311,7 +319,7 @@ public class ServiceDiscovery {
         while (it.hasNext()) {
             ServiceInstance instance = it.next();
 
-            if (now - instance.ttl > instance.timeLastSeen) {
+            if (now - instance.ttl*1000 > instance.timeLastSeen) {
                 it.remove();
                 handleRemovedService(instance);
             }
@@ -343,7 +351,7 @@ public class ServiceDiscovery {
      * @return
      */
     private short getTtlToSend() {
-        return (short) (advertisePeriod*ttlMultiplier);
+        return (short) ((advertisePeriod/1000)*ttlMultiplier);
     }
 
     public class RegisterServiceBuilder {
@@ -436,9 +444,9 @@ public class ServiceDiscovery {
             long srcId = buffer.getLong();
             if (srcId != ourId) {
                 short op = buffer.getShort();
-                logger.trace("Op is {}", op);
                 
                 short ttl = buffer.getShort();
+                logger.trace("Op is {} with TTL of {}", op, ttl);
                 
                 int port = buffer.getInt();
                 int portCheck = buffer.getInt();

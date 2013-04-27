@@ -17,8 +17,8 @@
 			<fileNamePattern>${user.home}/.vidsync/vidsync-server-%d{yyyy-MM}.%i.log</fileNamePattern>
 			<timeBasedFileNamingAndTriggeringPolicy
 				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-				<!-- or whenever the file size reaches 100MB -->
-				<maxFileSize>100MB</maxFileSize>
+				<!-- or whenever the file size maxes out -->
+				<maxFileSize>5MB</maxFileSize>
 				<maxHistory>2</maxHistory>
 			</timeBasedFileNamingAndTriggeringPolicy>
 		</rollingPolicy>
