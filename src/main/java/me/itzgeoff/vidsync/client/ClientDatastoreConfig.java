@@ -27,6 +27,9 @@ public class ClientDatastoreConfig {
     @Value("${client.dbQualifier}")
     private String clientQualifier = "default";
     
+    @Value("${client.dbWebPort:8083}")
+    private int webPort;
+    
 	@Bean
 	public HibernateJpaVendorAdapter jpaVendorAdapter() {
 		HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
@@ -66,7 +69,7 @@ public class ClientDatastoreConfig {
     
     @Bean
     public Server h2WebConsole() throws SQLException {
-        Server webServer = Server.createWebServer("-webPort","8083");
+        Server webServer = Server.createWebServer("-webPort",Integer.toString(webPort));
         webServer.start();
         return webServer;
     }

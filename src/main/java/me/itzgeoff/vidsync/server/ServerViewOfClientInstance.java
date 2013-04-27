@@ -1,7 +1,6 @@
 package me.itzgeoff.vidsync.server;
 
-import javax.jmdns.ServiceInfo;
-
+import me.itzgeoff.vidsync.common.ServiceDiscovery.ServiceInstance;
 import me.itzgeoff.vidsync.services.VidSyncClientService;
 
 import org.slf4j.Logger;
@@ -15,7 +14,7 @@ public class ServerViewOfClientInstance {
 	@Autowired
 	private ServerViewOfClientManager clientManager;
 	
-	private ServiceInfo serviceInfo;
+	private ServiceInstance serviceInfo;
 
 	private VidSyncClientService proxy;
 	
@@ -26,11 +25,11 @@ public class ServerViewOfClientInstance {
 	    .toString();
 	}
 
-	public ServiceInfo getServiceInfo() {
+	public ServiceInstance getServiceInfo() {
 		return serviceInfo;
 	}
 
-	public void setServiceInfo(ServiceInfo serviceInfo) {
+	public void setServiceInfo(ServiceInstance serviceInfo) {
 		this.serviceInfo = serviceInfo;
 		logger.debug("Created proxy of remote service {}", proxy);
 		proxy = clientManager.createClientServiceProxy(serviceInfo);

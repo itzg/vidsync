@@ -8,11 +8,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.jmdns.ServiceInfo;
-
 import me.itzgeoff.vidsync.common.OfferResponse;
 import me.itzgeoff.vidsync.common.OfferType;
 import me.itzgeoff.vidsync.common.ResultConsumer;
+import me.itzgeoff.vidsync.common.ServiceDiscovery.ServiceInstance;
 import me.itzgeoff.vidsync.domain.common.WatchedFile;
 import me.itzgeoff.vidsync.domain.common.WatchedFilesRepository;
 
@@ -27,8 +26,8 @@ public class ClientDistributor {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientDistributor.class);
     
-    private Map<String, ServerViewOfClientInstance> clients = 
-            Collections.synchronizedMap(new HashMap<String, ServerViewOfClientInstance>());
+    private Map<ServiceInstance, ServerViewOfClientInstance> clients = 
+            Collections.synchronizedMap(new HashMap<ServiceInstance, ServerViewOfClientInstance>());
     
     @Autowired
     private WatchedFilesRepository repository;
@@ -55,11 +54,11 @@ public class ClientDistributor {
     
     private static class DistributionKey {
         private WatchedFile watchedFile;
-        private ServiceInfo serviceInfo;
+        private ServiceInstance serviceInfo;
         
-        public DistributionKey(WatchedFile watchedFile, ServiceInfo serviceInfo) {
+        public DistributionKey(WatchedFile watchedFile, ServiceInstance serviceInstance) {
             this.watchedFile = watchedFile;
-            this.serviceInfo = serviceInfo;
+            this.serviceInfo = serviceInstance;
         }
         
         @Override
@@ -70,12 +69,12 @@ public class ClientDistributor {
             DistributionKey rhs = (DistributionKey) obj;
             
             return this.watchedFile.equals(rhs.watchedFile) &&
-                    this.serviceInfo.getKey().equals(rhs.serviceInfo.getKey());
+                    this.serviceInfo.equals(rhs.serviceInfo);
         }
         
         @Override
         public int hashCode() {
-            return watchedFile.hashCode() ^ serviceInfo.getKey().hashCode();
+            return watchedFile.hashCode() ^ serviceInfo.hashCode();
         }
     }
     
@@ -138,7 +137,7 @@ public class ClientDistributor {
     }
 
     public void addClient(ServerViewOfClientInstance viewOfClient) {
-        clients.put(viewOfClient.getServiceInfo().getURLs()[0], viewOfClient);
+        clients.put(viewOfClient.getServiceInfo(), viewOfClient);
         
         for (WatchedFile watchedFile : repository.findAll()) {
             File asFile = new File(watchedFile.getPath());
@@ -150,8 +149,8 @@ public class ClientDistributor {
 
     }
 
-    public void removeClient(ServiceInfo info) {
-        clients.remove(info.getURLs()[0]);
+    public void removeClient(ServiceInstance info) {
+        clients.remove(info);
     }
 
 }

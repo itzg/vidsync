@@ -56,7 +56,7 @@ public class ClientSender {
             logger.debug("Got receiver port {} for transfer of {}", receiverPort, file);
             
             
-            try (SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(clientView.getServiceInfo().getInet4Addresses()[0], receiverPort))) {
+            try (SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(clientView.getServiceInfo().getRemoteAddress(), receiverPort))) {
                 logger.debug("Opened socket {}", socketChannel);
                 
                 ByteBuffer sendBuffer = ByteBuffer.allocate(senderBufferSize);

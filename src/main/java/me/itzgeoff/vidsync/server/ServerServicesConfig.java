@@ -2,10 +2,9 @@ package me.itzgeoff.vidsync.server;
 
 import java.io.IOException;
 
-import javax.jmdns.JmDNS;
-import javax.jmdns.ServiceInfo;
-
 import me.itzgeoff.vidsync.common.DynamicRmiServiceExporter;
+import me.itzgeoff.vidsync.common.ServiceDiscovery;
+import me.itzgeoff.vidsync.common.ServiceDiscovery.Service;
 import me.itzgeoff.vidsync.common.VidSyncConstants;
 import me.itzgeoff.vidsync.services.VidSyncServerService;
 
@@ -37,17 +36,14 @@ public class ServerServicesConfig {
 	
 	@Bean
 	@Autowired
-	public ServiceInfo vidsyncRmiMdnsServiceInfo(JmDNS jmDNS, DynamicRmiServiceExporter rmiExporter) throws IOException {
-		ServiceInfo serviceInfo = ServiceInfo.create(VidSyncConstants.MDNS_SERVICE_TYPE, 
-				VidSyncConstants.MDNS_NAME_VIDSYNC_SERVER, 
-				rmiExporter.getRmiRegistryPort(), 
-				"VidSync Server RMI Service");
+	public Service vidsyncRmiMdnsServiceInfo(ServiceDiscovery serviceDiscovery, 
+	        DynamicRmiServiceExporter rmiExporter) throws IOException {
+
+		return serviceDiscovery.registerService()
+		.named(VidSyncConstants.MDNS_NAME_VIDSYNC_SERVER)
+		.onPort(rmiExporter.getRmiRegistryPort())
+		.done();
 		
-		jmDNS.registerService(serviceInfo);
-		
-		logger.info("Registered mDNS service {}", serviceInfo);
-		
-		return serviceInfo;
 	}
 
 }

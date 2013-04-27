@@ -13,25 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package me.itzgeoff.vidsync.common;
 
-import java.io.IOException;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import javax.jmdns.JmDNS;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-@Configuration
-public class JmDNSConfig {
-	
-	@Bean
-	@Autowired
-	public JmDNS jmDNS(JmDNSCloser closer) throws IOException {
-		JmDNS jmDNS = JmDNS.create();
-		closer.addJmDNS(jmDNS);
-		return jmDNS;
-	}
-
+/**
+ * @author Geoff
+ *
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface ServiceDescription {
+    /**
+     * Regular expressions to express what services the {@link ServiceListener} wants to hear
+     * @return
+     */
+    String[] names();
 }

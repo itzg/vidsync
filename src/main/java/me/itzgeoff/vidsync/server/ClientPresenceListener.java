@@ -1,12 +1,10 @@
 package me.itzgeoff.vidsync.server;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.jmdns.JmDNS;
-import javax.jmdns.ServiceEvent;
-import javax.jmdns.ServiceInfo;
-import javax.jmdns.ServiceListener;
 
+import me.itzgeoff.vidsync.common.ServiceDescription;
+import me.itzgeoff.vidsync.common.ServiceDiscovery.ServiceInstance;
+import me.itzgeoff.vidsync.common.ServiceListener;
 import me.itzgeoff.vidsync.common.VidSyncConstants;
 
 import org.slf4j.Logger;
@@ -19,12 +17,10 @@ import com.yammer.metrics.Counter;
 import com.yammer.metrics.MetricRegistry;
 
 @Component
-public class ClientPresenceListener {
+@ServiceDescription(names=VidSyncConstants.MDNS_NAME_VIDSYNC_CLIENT)
+public class ClientPresenceListener implements ServiceListener {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ClientPresenceListener.class);
-
-	@Autowired
-	private JmDNS jmDNS;
 	
 	@Autowired
 	private TaskExecutor taskExecutor;
@@ -37,87 +33,41 @@ public class ClientPresenceListener {
 	
     @Autowired
     private MetricRegistry metrics;
-	
-	private ServiceListener serviceListener;
 
     private Counter counterClientsAdded;
 
     private Counter counterClientsConnected;
 
 	@PostConstruct
-	public void register() {
+	public void init() {
 	    counterClientsAdded = metrics.counter(MetricRegistry.name(ClientPresenceListener.class, "clients-added-total"));
 	    counterClientsConnected = metrics.counter(MetricRegistry.name(ClientPresenceListener.class, "clients-connected-current"));
-	    
-		serviceListener = new ServiceListener() {
-			
-			@Override
-			public void serviceResolved(ServiceEvent evt) {
-				if (isClientName(evt.getName())) {
-					handleClientResolved(evt.getInfo());
-				}
-				else {
-				    logger.trace("Saw another service resolved: {}", evt.getInfo());
-				}
-			}
-			
-			@Override
-			public void serviceRemoved(ServiceEvent evt) {
-				if (isClientName(evt.getName())) {
-					handleClientRemoved(evt.getInfo());
-				}
-			}
-			
-			@Override
-			public void serviceAdded(ServiceEvent arg0) {
-				// this one isn't too interesting...we'll wait for service resolved
-			}
-		};
-		
-
-		taskExecutor.execute(new Runnable() {
-			@Override
-			public void run() {
-				logger.debug("Added service listener, now looking for services already running");
-
-				ServiceInfo[] runningAlready = jmDNS.list(VidSyncConstants.MDNS_SERVICE_TYPE);
-				if (runningAlready != null) {
-					for (ServiceInfo serviceInfo : runningAlready) {
-						if (isClientName(serviceInfo.getName())) {
-							handleClientResolved(serviceInfo);
-						}
-					}
-				}
-				
-		        jmDNS.addServiceListener(VidSyncConstants.MDNS_SERVICE_TYPE, serviceListener);
-			}
-		});
 	}
 
-    private boolean isClientName(String mdnsName) {
-        return mdnsName.startsWith(VidSyncConstants.MDNS_NAME_VIDSYNC_CLIENT);
+    /* (non-Javadoc)
+     * @see me.itzgeoff.vidsync.common.ServiceListener#serviceAdded(me.itzgeoff.vidsync.common.ServiceDiscovery.ServiceInstance)
+     */
+    @Override
+    public void serviceAdded(ServiceInstance service) {
+        logger.debug("Resolved {}", service);
+        counterClientsAdded.inc();
+        counterClientsConnected.inc();
+        
+        ServerViewOfClientInstance viewOfClient = clientManager.createViewOfClient(service);
+        
+        distributor.addClient(viewOfClient);
+
     }
 
-	protected void handleClientRemoved(ServiceInfo info) {
-	    logger.debug("Saw removal of {}", info);
-	    
-	    distributor.removeClient(info);
-	}
+    /* (non-Javadoc)
+     * @see me.itzgeoff.vidsync.common.ServiceListener#serviceRemoved(me.itzgeoff.vidsync.common.ServiceDiscovery.ServiceInstance)
+     */
+    @Override
+    public void serviceRemoved(ServiceInstance service) {
+        logger.debug("Saw removal of {}", service);
+        counterClientsConnected.dec();
 
-	protected void handleClientResolved(ServiceInfo info) {
-		logger.debug("Resolved {}", info);
-		counterClientsAdded.inc();
-		counterClientsConnected.inc();
-		
-		ServerViewOfClientInstance viewOfClient = clientManager.createViewOfClient(info);
-		
-		distributor.addClient(viewOfClient);
-	}
-
-	@PreDestroy
-	public void deregister() {
-	    counterClientsConnected.dec();
-		jmDNS.removeServiceListener(VidSyncConstants.MDNS_SERVICE_TYPE, serviceListener);
-	}
+        distributor.removeClient(service);
+    }
 
 }

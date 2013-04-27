@@ -1,10 +1,8 @@
 package me.itzgeoff.vidsync.server;
 
-import java.net.Inet4Address;
 import java.util.concurrent.Executor;
 
-import javax.jmdns.ServiceInfo;
-
+import me.itzgeoff.vidsync.common.ServiceDiscovery.ServiceInstance;
 import me.itzgeoff.vidsync.common.VidSyncConstants;
 import me.itzgeoff.vidsync.services.VidSyncClientService;
 
@@ -74,29 +72,18 @@ public class ServerAppConfig {
 			
 			@Override
 			public ServerViewOfClientInstance createViewOfClient(
-					ServiceInfo info) {
+			        ServiceInstance info) {
 				ServerViewOfClientInstance instance = serverViewOfClientInstance();
 				instance.setServiceInfo(info);
 				return instance;
 			}
 
 			@Override
-			public VidSyncClientService createClientServiceProxy(
-					ServiceInfo info) {
+			public VidSyncClientService createClientServiceProxy(ServiceInstance info) {
 				
-				Inet4Address[] serviceAddresses = info.getInet4Addresses();
-				if (serviceAddresses != null && serviceAddresses.length > 0) {
-					if (serviceAddresses.length > 1) {
-						logger.warn("Multiple addresses provided by {}, but only using first one", info);
-					}
+				RmiProxyFactoryBean factory = dynamicRmiProxyFactory(info.getRemoteAddress().getHostAddress(), info.getPort());
 
-					RmiProxyFactoryBean factory = dynamicRmiProxyFactory(serviceAddresses[0].getHostAddress(), info.getPort());
-
-					return (VidSyncClientService) factory.getObject();
-				}
-				else {
-					throw new IllegalArgumentException("Provided ServiceInfo didn't contain any addresses");
-				}
+                return (VidSyncClientService) factory.getObject();
 			}
 		};
 	}
