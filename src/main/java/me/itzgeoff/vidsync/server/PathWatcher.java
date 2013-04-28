@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,8 @@ public class PathWatcher implements PreferencesConsumer {
 	
     @Autowired
     private TaskScheduler taskScheduler;
+    
+    private Pattern allowedFileNames = Pattern.compile(".*\\.(m4v|mp4)", Pattern.CASE_INSENSITIVE);
 
     private Map<File, WatchKey> watches = new HashMap<>();
     
@@ -110,9 +113,11 @@ public class PathWatcher implements PreferencesConsumer {
     }
 
     private void handleChangedFile(File videoFile) {
-        logger.debug("Handling changed file {}", videoFile);
-        
-        router.in(videoFile);
+        if (allowedFileNames.matcher(videoFile.getName()).matches()) {
+            logger.debug("Handling changed file {}", videoFile);
+            
+            router.in(videoFile);
+        }
     }
 
 	protected void pollWatchKeys() {
