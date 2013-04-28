@@ -32,7 +32,7 @@ public class WatchedFileRouter {
 
 		@Override
 		public void failedToReachResult(File videoFile, Exception e) {
-			logger.error("Unable to parse signature from {}", e, videoFile);
+			logger.error("Unable to parse signature from "+videoFile, e);
 			out(videoFile);
 		}
 		
@@ -68,7 +68,8 @@ public class WatchedFileRouter {
 		
 		if (incomingFiles.add(videoFile)) {
     		try {
-    			WatchedFile entry = repository.findByPath(videoFile.getCanonicalPath());
+    			final String canonicalPath = videoFile.getCanonicalPath();
+                WatchedFile entry = repository.findByPath(canonicalPath);
     			if (entry == null) {
     				nextUnknownVideoFile(videoFile);
     			}
@@ -168,11 +169,6 @@ public class WatchedFileRouter {
 		if (!movieInfo.getTitle().equals(watchedFile.getTitle())) {
 		    // Update our title info
 		    watchedFile.setTitle(movieInfo.getTitle());
-		    try {
-                watchedFile.setPath(videoFile.getCanonicalPath());
-            } catch (IOException e) {
-                watchedFile.setPath(videoFile.getAbsolutePath());
-            }
 		    
 		    distributor.distributeChangedFile(watchedFile, createCompletionConsumer());
 		}
@@ -182,13 +178,18 @@ public class WatchedFileRouter {
 		}
 		
 		// Save off any changes to the non-important, but tracked metadata
+        try {
+            watchedFile.setPath(videoFile.getCanonicalPath());
+        } catch (IOException e) {
+            watchedFile.setPath(videoFile.getAbsolutePath());
+        }
         watchedFile.setFileSize(videoFile.length());
         watchedFile.setLastModified(videoFile.lastModified());
         watchedFile.setTheFile(videoFile);
 		
 		// Save it!
-		logger.debug("Saving updated {}", watchedFile);
-		repository.save(watchedFile);
+		WatchedFile saved = repository.save(watchedFile);
+		logger.debug("Saved updated {}", saved);
 	}
 
 	protected void nextUnknownVideoFile(File videoFile) throws IOException {

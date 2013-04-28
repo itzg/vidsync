@@ -80,7 +80,7 @@ public class ClientDistributor {
     
     protected void distributeOffer(WatchedFile watchedFile, OfferType type, 
             final ResultConsumer<WatchedFile, Boolean> resultConsumer) {
-        logger.debug("Distribute {} of type {}", watchedFile, type);
+        logger.trace("Distribute {} of type {}", watchedFile, type);
         
         if (watchedFile.getTheFile() == null) {
             watchedFile.setTheFile(new File(watchedFile.getPath()));

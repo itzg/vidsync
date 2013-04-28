@@ -9,6 +9,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +19,8 @@ import com.coremedia.iso.boxes.mdat.MediaDataBox;
 
 @Component
 public class MdatSignatureParser {
+    
+    private static final Logger logger = LoggerFactory.getLogger(MdatSignatureParser.class);
 	
 	private static final String MD_ALGO = "MD5";
 	private static final int MD_BUFFER_SIZE = 5000;
@@ -36,6 +40,8 @@ public class MdatSignatureParser {
 	
 	@Async("signature")
 	public void parseAsync(File file, ResultConsumer<File, String> consumer) {
+	    logger.debug("Starting asynchronous parsing of {}", file);
+	    
 		try {
 			String signature = parse(file, null);
 			consumer.consumeResult(file, signature);
@@ -63,13 +69,18 @@ public class MdatSignatureParser {
 					MessageDigest md5 = MessageDigest.getInstance(MD_ALGO);
 					
 					// Needed to compute content size since the box didn't give us that directly
-				final long contentSize = mdat.getSize() - mdat.getHeader().limit();
+					final long contentSize = mdat.getSize() - mdat.getHeader().limit();
 					
 					listener.expectedTotal(contentSize);
 					for (long offset = 0; offset < contentSize; offset += MD_BUFFER_SIZE) {
 						listener.update(offset);
-						int length = Math.min(MD_BUFFER_SIZE, (int)(contentSize - offset));
-						ByteBuffer buffer = mdat.getContent(offset, length);
+						
+						long length = Math.min(MD_BUFFER_SIZE, contentSize - offset);
+						if (length != MD_BUFFER_SIZE) {
+                            logger.debug("Calling getContent({}, {})", offset, length);
+                        }
+                        ByteBuffer buffer = mdat.getContent(offset, (int)length);
+						
 						md5.update(buffer);
 					}
 					
@@ -84,6 +95,8 @@ public class MdatSignatureParser {
 				// iteratively, we'll force a gc to working set memory bounded
 				System.gc();
 			}
+		} catch (Exception e) {
+		    throw new VidSyncException("Unexpected issue during parse", e);
 		}
 	}
 }

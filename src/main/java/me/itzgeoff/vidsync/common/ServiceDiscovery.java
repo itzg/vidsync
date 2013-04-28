@@ -185,7 +185,7 @@ public class ServiceDiscovery {
     // N    : service name string, no more than 50 bytes
     private static final int MAX_DATAGRAM_SIZE = 21+MAX_SERVICE_NAME_LENGTH;
 
-    protected static final long NAP_TIME_AFTER_BAD_AD = 300_000;
+    protected static final long NAP_MULTIPLIER_AFTER_BAD_ADVERT = 2;
     
     @Autowired(required=false)
     private List<ServiceListener> listeners;
@@ -210,11 +210,22 @@ public class ServiceDiscovery {
 
     private InetSocketAddress multicastSdAddress;
 
-    private Timer advertiseTimer;
+    private Timer sdTimer;
     
     private List<Service> servicesToAdvertise = new ArrayList<>();
     
     private List<ServiceInstance> servicesObserved = new ArrayList<>();
+
+    private TimerTask sdTimerTask;
+
+    protected boolean needsReset;
+    
+    /**
+     * 
+     */
+    public ServiceDiscovery() {
+        sdTimer = new Timer("ServiceDiscovery", true);
+    }
 
     @PostConstruct
     private void start() {
@@ -224,23 +235,7 @@ public class ServiceDiscovery {
             public void run() {
                 running = true;
                 
-                while (running) {
-                    try {
-                        init();
-                    } catch (IOException e) {
-                        logger.warn("Failed to initialize ServiceDiscovery", e);
-                        running = false;
-                        return;
-                    }
-                    try {
-                        worker();
-                    } catch (ClosedByInterruptException e) {
-                        logger.debug("Normal closure by interrupt");
-                    } catch (Exception e) {
-                        logger.error("Unexpected error from worker. Resetting and trying again.", e);
-                        reset();
-                    }
-                }
+                runLoop();
             }
         });
         thread.setDaemon(true);
@@ -249,7 +244,7 @@ public class ServiceDiscovery {
 
     @PreDestroy
     private void stop() {
-        advertiseTimer.cancel();
+        sdTimer.cancel();
         deregisterAll();
         running = false;
         thread.interrupt();
@@ -277,21 +272,23 @@ public class ServiceDiscovery {
         
         logger.info("Joined service discovery on {}", multicastInterface);
         
-        advertiseTimer = new Timer();
-        advertiseTimer.schedule(new TimerTask() {
+        sdTimerTask = new TimerTask() {
             
             @Override
             public void run() {
                 try {
                     sendAdvertisements();
                 } catch (Exception e) {
-                    logger.error("An error occurred while sending advertisements. Will take a nap and try later.", e);
-                    try {
-                        Thread.sleep(NAP_TIME_AFTER_BAD_AD);
-                    } catch (InterruptedException e1) {}
+                    logger.error("An error occurred while sending advertisements.", e);
+                    cancel();
+                    // Yo, things got bad. Let's get out of here and try again
+                    needsReset = true;
+                    thread.interrupt();
                 }
             }
-        }, 0, advertisePeriod);
+        };
+        
+        sdTimer.schedule(sdTimerTask, 0, advertisePeriod);
     }
     
     /**
@@ -579,6 +576,11 @@ public class ServiceDiscovery {
     protected void reset() {
         logger.debug("Reseting");
         
+        if (sdTimerTask != null) {
+            sdTimerTask.cancel();
+            sdTimerTask = null;
+        }
+        
         if (membershipKey != null) {
             membershipKey.drop();
             membershipKey = null;
@@ -623,5 +625,32 @@ public class ServiceDiscovery {
      */
     public Exception getLastException() {
         return lastException;
+    }
+
+    private void runLoop() {
+        while (running) {
+            try {
+                init();
+            } catch (IOException e) {
+                logger.warn("Failed to initialize ServiceDiscovery", e);
+                running = false;
+                return;
+            }
+            try {
+                worker();
+            } catch (ClosedByInterruptException e) {
+                if (needsReset) {
+                    logger.debug("Interruption requested reset");
+                    needsReset = false;
+                    reset();
+                }
+                else {
+                    logger.debug("Normal closure by interrupt");
+                }
+            } catch (Exception e) {
+                logger.error("Unexpected error from worker. Resetting and trying again.", e);
+                reset();
+            }
+        }
     }
 }
