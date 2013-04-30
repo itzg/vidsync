@@ -62,6 +62,11 @@ public class ServiceDiscovery {
      * 
      */
     private static final int OP_REMOVAL = 2;
+    
+    /**
+     * Sent out in place of advertisements, if there would have been none
+     */
+    private static final int OP_HEARTBEAT = 3;
 
     public static class Service {
         protected int port;
@@ -177,7 +182,7 @@ public class ServiceDiscovery {
 
     // Size : Description
     // 8    : Our ID (to avoid feedback loops)
-    // 2    : Operation, 1 = advertise, 2 = removal
+    // 2    : Operation, 1 = advertise, 2 = removal, ...
     // 2    : TTL (in seconds)
     // 4    : port of the service
     // 4    : port^port for protocol validation
@@ -186,6 +191,7 @@ public class ServiceDiscovery {
     private static final int MAX_DATAGRAM_SIZE = 21+MAX_SERVICE_NAME_LENGTH;
 
     protected static final long NAP_MULTIPLIER_AFTER_BAD_ADVERT = 2;
+
     
     @Autowired(required=false)
     private List<ServiceListener> listeners;
@@ -195,6 +201,17 @@ public class ServiceDiscovery {
     
     @Value("${serviceDiscovery.ttlMultiplier:3}")
     private int ttlMultiplier = 3;
+    
+    /**
+     * Multiplier of advertisePeriod that is used to determine if a sleep/suspend state might
+     * have occurred in between invocations of the advertise timer. If so, we'll reset the
+     * multicast membership to overcome OS peculiarities related to waking up.
+     */
+    @Value("${serviceDiscovery.sleepDetectionMultiplier:3}")
+    private int sleepDetectionMultiplier = 3;
+
+    @Value("${serviceDiscovery.failedInitSleepPeriod:360000}")
+    private long failedInitSleepPeriod;
 
     private final long ourId = new Random().nextLong();
 
@@ -217,6 +234,8 @@ public class ServiceDiscovery {
     private List<ServiceInstance> servicesObserved = new ArrayList<>();
 
     private TimerTask sdTimerTask;
+    
+    private long lastSdRunTimestamp;
 
     protected boolean needsReset;
     
@@ -224,7 +243,7 @@ public class ServiceDiscovery {
      * 
      */
     public ServiceDiscovery() {
-        sdTimer = new Timer("ServiceDiscovery", true);
+        sdTimer = new Timer("ServiceDiscoveryTimer", true);
     }
 
     @PostConstruct
@@ -237,7 +256,7 @@ public class ServiceDiscovery {
                 
                 runLoop();
             }
-        });
+        }, "ServiceDiscoveryRecv");
         thread.setDaemon(true);
         thread.start();
     }
@@ -272,20 +291,38 @@ public class ServiceDiscovery {
         
         logger.info("Joined service discovery on {}", multicastInterface);
         
+        lastSdRunTimestamp = 0;
         sdTimerTask = new TimerTask() {
             
             @Override
             public void run() {
+                final long now = System.currentTimeMillis();
+                
+                if (lastSdRunTimestamp != 0 && (now - lastSdRunTimestamp) > advertisePeriod*sleepDetectionMultiplier) {
+                    logger.debug("Detected sleep/suspend. Restarting multicast.");
+                    restartMulticastMembership();
+                    return;
+                }
+                lastSdRunTimestamp = now;
+                
                 try {
                     sendAdvertisements();
                 } catch (Exception e) {
                     logger.error("An error occurred while sending advertisements.", e);
-                    cancel();
-                    // Yo, things got bad. Let's get out of here and try again
-                    needsReset = true;
-                    thread.interrupt();
+                    restartMulticastMembership();
+                    return;
                 }
+                
+                checkForExpirations();
             }
+            
+
+            private void restartMulticastMembership() {
+                cancel(); // ...this timer task
+                needsReset = true;
+                thread.interrupt();
+            }
+
         };
         
         sdTimer.schedule(sdTimerTask, 0, advertisePeriod);
@@ -297,13 +334,16 @@ public class ServiceDiscovery {
      */
     protected void sendAdvertisements() throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(MAX_DATAGRAM_SIZE);
-        synchronized (servicesToAdvertise) {
-            for (Service service : servicesToAdvertise) {
-                sendServiceAdvertisement(service, buffer, false);
+        if (!servicesToAdvertise.isEmpty()) {
+            synchronized (servicesToAdvertise) {
+                for (Service service : servicesToAdvertise) {
+                    sendServiceAdvertisement(service, buffer, false);
+                }
             }
         }
-        
-        checkForExpirations();
+        else {
+            sendHeartbeat(buffer);
+        }
     }
 
     /**
@@ -325,11 +365,11 @@ public class ServiceDiscovery {
 
     private void sendServiceAdvertisement(Service service, ByteBuffer buffer, boolean isRemoval) throws IOException {
         if (channel != null) {
+            logger.trace("Advertising {}, removal={}", service, isRemoval);
             if (buffer == null) {
                 buffer = ByteBuffer.allocate(MAX_DATAGRAM_SIZE);
             }
             
-            logger.trace("Advertising {}, removal={}", service, isRemoval);
             buffer.clear();
             buffer.putLong(ourId);
             buffer.putShort((short) (isRemoval ? OP_REMOVAL : OP_ADVERTISEMENT));
@@ -343,7 +383,27 @@ public class ServiceDiscovery {
             channel.send(buffer, multicastSdAddress);
         }
     }
-    
+
+    /**
+     * @param buffer
+     * @throws IOException 
+     */
+    private void sendHeartbeat(ByteBuffer buffer) throws IOException {
+        if (channel != null) {
+            logger.trace("Sending heartbeat");
+            if (buffer == null) {
+                buffer = ByteBuffer.allocate(MAX_DATAGRAM_SIZE);
+            }
+            
+            buffer.clear();
+            buffer.putLong(ourId);
+            buffer.putShort((short) OP_HEARTBEAT);
+            
+            buffer.flip();
+            channel.send(buffer, multicastSdAddress);
+        }
+    }
+
     /**
      * @return
      */
@@ -423,7 +483,7 @@ public class ServiceDiscovery {
      * Blocks in here waiting for something to happen
      * @throws IOException 
      */
-    protected void worker() throws IOException {
+    protected void receiveUpdates() throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(MAX_DATAGRAM_SIZE);
         
         while (running) {
@@ -632,12 +692,18 @@ public class ServiceDiscovery {
             try {
                 init();
             } catch (IOException e) {
-                logger.warn("Failed to initialize ServiceDiscovery", e);
-                running = false;
-                return;
+                logger.warn("Failed to initialize ServiceDiscovery. Will try again later.", e);
+                lastException = e;
+                
+                try {
+                    Thread.sleep(failedInitSleepPeriod);
+                } catch (InterruptedException e1) {}
+                
+                continue;
             }
+            
             try {
-                worker();
+                receiveUpdates();
             } catch (ClosedByInterruptException e) {
                 if (needsReset) {
                     logger.debug("Interruption requested reset");
@@ -647,6 +713,9 @@ public class ServiceDiscovery {
                 else {
                     logger.debug("Normal closure by interrupt");
                 }
+                
+                // clear interrupted status
+                Thread.interrupted();
             } catch (Exception e) {
                 logger.error("Unexpected error from worker. Resetting and trying again.", e);
                 reset();
