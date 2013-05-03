@@ -23,5 +23,7 @@ package me.itzgeoff.vidsync.common;
 public interface ServiceListener {
     public void serviceAdded(ServiceDiscovery.ServiceInstance service);
     
+    public void serviceTimedOut(ServiceDiscovery.ServiceInstance serviceInstance);
+
     public void serviceRemoved(ServiceDiscovery.ServiceInstance serviceInstance);
 }

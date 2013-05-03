@@ -176,7 +176,7 @@ public class ServiceDiscovery {
 
     private static final Logger logger = LoggerFactory.getLogger(ServiceDiscovery.class);
 
-    private static final int SD_PORT = 53535;
+    private static final int SD_PORT = 5454;
     
     public static final int MAX_SERVICE_NAME_LENGTH = 50;
 
@@ -358,7 +358,7 @@ public class ServiceDiscovery {
 
             if (now - instance.ttl*1000 > instance.timeLastSeen) {
                 it.remove();
-                handleRemovedService(instance);
+                handleRemovedService(instance, true);
             }
         }
     }
@@ -565,7 +565,7 @@ public class ServiceDiscovery {
                 }
                 
                 if (removed) {
-                    handleRemovedService(instance);
+                    handleRemovedService(instance, false);
                 }
                 break;
             }
@@ -603,8 +603,9 @@ public class ServiceDiscovery {
 
     /**
      * @param instance
+     * @param isTimeout TODO
      */
-    private void handleRemovedService(ServiceInstance instance) {
+    private void handleRemovedService(ServiceInstance instance, boolean isTimeout) {
         if (listeners == null) {
             return;
         }
@@ -625,7 +626,12 @@ public class ServiceDiscovery {
             }
             
             if (matches) {
-                listener.serviceRemoved(instance);
+                if (!isTimeout) {
+                    listener.serviceRemoved(instance);
+                }
+                else {
+                    listener.serviceTimedOut(instance);
+                }
             }
         }
     }

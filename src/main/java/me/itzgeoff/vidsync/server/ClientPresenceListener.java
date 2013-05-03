@@ -70,4 +70,15 @@ public class ClientPresenceListener implements ServiceListener {
         distributor.removeClient(service);
     }
 
+    /* (non-Javadoc)
+     * @see me.itzgeoff.vidsync.common.ServiceListener#serviceTimedOut(me.itzgeoff.vidsync.common.ServiceDiscovery.ServiceInstance)
+     */
+    @Override
+    public void serviceTimedOut(ServiceInstance service) {
+        logger.debug("Saw timeout of {}", service);
+        counterClientsConnected.dec();
+
+        distributor.removeClient(service);
+    }
+
 }
