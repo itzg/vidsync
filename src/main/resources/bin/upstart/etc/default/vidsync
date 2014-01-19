@@ -1,0 +1,3 @@
+JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
+
+VIDSYNC_JAR=/usr/share/vidsync/vidsync.jar
