@@ -12,7 +12,7 @@
 	<logger name="org.hibernate" level="warn"/>
 	<logger name="org.springframework" level="warn"/>
 	
-	<logger name="me.itzgeoff.vidsync" level="debug"/>
+	<logger name="me.itzgeoff.vidsync" level="info"/>
 
 	<root level="info">
 		<appender-ref ref="STDOUT" />

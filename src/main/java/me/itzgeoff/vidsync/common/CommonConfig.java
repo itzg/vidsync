@@ -8,8 +8,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import com.yammer.metrics.JmxReporter;
-import com.yammer.metrics.MetricRegistry;
+import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.MetricRegistry;
 
 @Configuration
 @EnableTransactionManagement
@@ -29,7 +29,7 @@ public class CommonConfig {
 	
 	@Bean
 	public MetricRegistry metrics() {
-	    return new MetricRegistry("vidsync");
+	    return new MetricRegistry();
 	}
 	
 	@Bean

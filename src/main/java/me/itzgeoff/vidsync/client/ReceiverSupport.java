@@ -20,7 +20,7 @@ public class ReceiverSupport {
     }
     
     private String normalizeTitleToFilename(String title) {
-        return title.replaceAll(":", "_");
+        return title.replaceAll("[:/]", "_");
     }
 
 }

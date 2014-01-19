@@ -13,8 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
-import com.yammer.metrics.Counter;
-import com.yammer.metrics.MetricRegistry;
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.MetricRegistry;
 
 @Component
 @ServiceDescription(names=VidSyncConstants.MDNS_NAME_VIDSYNC_CLIENT)

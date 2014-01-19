@@ -1,7 +1,6 @@
 package me.itzgeoff.vidsync.server;
 
 import java.net.InetSocketAddress;
-
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
@@ -19,8 +18,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import com.yammer.metrics.Meter;
-import com.yammer.metrics.MetricRegistry;
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.MetricRegistry;
 
 @Component
 @Async("sender")
